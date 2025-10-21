@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil SD Negeri Palupi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Script by febra@sdislamiqrapetobo.sch.id-->
+  
+    <style>
+        /* Sembunyikan kartu pada awalnya */
+        #profile-card {
+            opacity: 0;
+            transform: scale(0.95) translateY(20px);
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+        }
+        /* Kelas yang akan ditambahkan oleh JS saat halaman dimuat */
+        #profile-card.loaded {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-100 to-gray-200 min-h-screen flex items-center justify-center p-4">
+
+    <main id="profile-card" class="max-w-md w-full bg-white rounded-2xl shadow-2xl overflow-hidden">
+        
+        <div class="relative">
+            <img class="w-full h-40 object-cover" 
+                 src="https://cdn-sdotid.adg.id/images/3784ae5e-5025-4a49-a22a-3008435123e3_980x382.webp.jpeg" 
+                 alt="Banner SDN Palupi">
+            
+            <button id="share-button" class="absolute top-4 right-4 bg-white/70 p-2 rounded-full backdrop-blur-sm transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12s-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+                </svg>
+            </button>
+
+            <img class="w-24 h-24 rounded-full border-4 border-white shadow-lg
+                       absolute left-1/2 -translate-x-1/2 bottom-0 translate-y-1/2" 
+                 src="https://cdn-sdotid.adg.id/images/1be1efae-146f-41ac-ac7d-be938001e8e9_980x980.webp.jpeg" 
+                 alt="Logo SDN Palupi">
+        </div>
+
+        <div class="pt-16 pb-6 px-6 text-center">
+            <h1 class="text-2xl font-bold text-gray-800">
+                SD Negeri Palupi
+            </h1>
+            <div class="mt-2 text-gray-600 text-sm space-y-1">
+                <p>Jl. Pue Bongo No.14</p>
+                <p>Kec. Tatanga - Kota Palu - Sulawesi Tengah</p>
+                <p class="font-semibold text-gray-500 pt-1">Wilayah III - Gugus X - NPSN 40203492</p>
+            </div>
+        </div>
+
+        <nav class="px-6 pb-8 space-y-4">
+            
+            <a href="https://docs.google.com/spreadsheets/d/1NlSbK6MYXQQdl3N652sipGmxKZla-x02/edit?usp=sharing&ouid=107391124208902251342&rtpof=true&sd=true" class="flex items-center justify-center w-full p-4 rounded-lg text-white font-semibold shadow-md
+                           bg-red-500 hover:bg-red-600 
+                           transition duration-300 ease-in-out transform hover:scale-105
+                           focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                </svg>
+                <span>Profil Sekolah</span>
+            </a>
+
+            <a href="https://docs.google.com/spreadsheets/d/1Nz8jsZXW18w9G_caSBM9CdPaMEgyOrRd/edit?usp=sharing&ouid=107391124208902251342&rtpof=true&sd=true" class="flex items-center justify-center w-full p-4 rounded-lg text-white font-semibold shadow-md
+                           bg-green-500 hover:bg-green-600
+                           transition duration-300 ease-in-out transform hover:scale-105
+                           focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-2.29l-2.122 2.122a1 1 0 01-1.414 0l-2.122-2.122A3 3 0 003 18v2h5m0-13v-2a3 3 0 013-3h4a3 3 0 013 3v2m-6 0h6" />
+                </svg>
+                <span>Data Guru dan Tendik</span>
+            </a>
+
+            <a href="https://docs.google.com/spreadsheets/d/1mk5Qcj61VDPxNjjsFZfvgHg_S4cfP3dV/edit?usp=sharing&ouid=107391124208902251342&rtpof=true&sd=true" class="flex items-center justify-center w-full p-4 rounded-lg text-white font-semibold shadow-md
+                           bg-blue-500 hover:bg-blue-600
+                           transition duration-300 ease-in-out transform hover:scale-105
+                           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+                <span>Jumlah Siswa</span>
+            </a>
+
+            <a href="https://drive.google.com/drive/folders/1cv6xviUr9Xz0tP1oRxgN5kjllSI3wlOC?usp=sharing" class="flex items-center justify-center w-full p-4 rounded-lg text-white font-semibold shadow-md
+                           bg-red-700 hover:bg-red-800
+                           transition duration-300 ease-in-out transform hover:scale-105
+                           focus:outline-none focus:ring-2 focus:ring-red-700 focus:ring-offset-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span>Foto Kegiatan Sekolah</span>
+            </a>
+
+            <a href="https://forms.gle/iYJ18ALxm3DuVptKA" class="flex items-center justify-center w-full p-4 rounded-lg text-white font-semibold shadow-md
+                           bg-yellow-500 hover:bg-yellow-600
+                           transition duration-300 ease-in-out transform hover:scale-105
+                           focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                </svg>
+                <span>Lapor Kehadiran Siswa Perkelas</span>
+            </a>
+
+            <a href="https://docs.google.com/spreadsheets/d/1Bcp2w1MTjBmrPwXEIXyRi7y8a2hs6r1LSBM4GWmDsKQ/edit?usp=sharing" class="flex items-center justify-center w-full p-4 rounded-lg text-white font-semibold shadow-md
+                           bg-indigo-500 hover:bg-indigo-600
+                           transition duration-300 ease-in-out transform hover:scale-105
+                           focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                <span>Lihat Kehadiran Siswa</span>
+            </a>
+            </nav>
+    </main>
+
+    <script>
+        // Tunggu hingga konten halaman dimuat
+        window.addEventListener('DOMContentLoaded', (event) => {
+            
+            // 1. Logika untuk animasi kartu
+            const card = document.getElementById('profile-card');
+            if (card) {
+                card.classList.add('loaded');
+            }
+
+            // 2. Logika BARU untuk tombol share
+            // (Saya tambahkan ID 'share-button' di HTML untuk seleksi yang lebih aman)
+            const shareButton = document.getElementById('share-button');
+
+            if (shareButton) {
+                shareButton.addEventListener('click', async () => {
+                    const shareData = {
+                        title: 'Profil SD Negeri Palupi',
+                        text: 'Lihat profil singkat SD Negeri Palupi.',
+                        url: window.location.href // Bagikan link halaman saat ini
+                    };
+
+                    // Cek apakah browser mendukung Web Share API (umumnya di HP)
+                    if (navigator.share) {
+                        try {
+                            await navigator.share(shareData);
+                            // Berhasil dibagikan
+                        } catch (err) {
+                            console.error('Gagal membagikan:', err);
+                        }
+                    } else {
+                        // Fallback untuk browser desktop: Salin link ke clipboard
+                        try {
+                            await navigator.clipboard.writeText(window.location.href);
+                            alert('Link profil sekolah telah disalin ke clipboard!');
+                        } catch (err) {
+                            // Fallback jika clipboard gagal (misal di koneksi non-HTTPS)
+                            alert('Fitur berbagi tidak didukung. Silakan salin link secara manual.');
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+
+</body>
+</html>
