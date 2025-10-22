@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="id"> <head>
+<html lang="id">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Lihat profil singkat, data guru, jumlah siswa, dan informasi penting lainnya dari SD Negeri Palupi, Kota Palu.">
@@ -14,12 +15,15 @@
         } else {
             document.documentElement.classList.remove('dark');
         }
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
         tailwind.config = {
             darkMode: 'class'
         }
     </script>
-
-    <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
         #profile-card {
@@ -33,38 +37,46 @@
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-slate-100 to-slate-300 dark:from-slate-900 dark:to-slate-800 min-h-screen flex flex-col p-4 transition-colors duration-300">
+<body class="bg-gradient-to-br from-slate-100 to-slate-300 dark:from-slate-900 dark:to-slate-800 min-h-screen flex flex-col p-4 transition-colors duration-300 font-sans">
 
+    <!-- Konten Utama: Kartu Profil terpusat -->
     <div class="flex-grow flex items-center justify-center w-full">
 
         <main id="profile-card" class="max-w-md w-full bg-white dark:bg-slate-800 rounded-2xl shadow-2xl dark:shadow-slate-900/50 overflow-hidden">
             
+            <!-- Bagian Header & Banner -->
             <div class="relative">
                 <img class="w-full h-40 object-cover" 
                      src="https://raw.githubusercontent.com/Laravelya/laravelya.github.io/refs/heads/main/sdnegeripalupi/img/3784ae5e-5025-4a49-a22a-3008435123e3_980x382.webp.webp" 
                      alt="Banner SDN Palupi">
                 
-                <button id="theme-toggle-button" class="absolute top-4 left-4 bg-white/70 dark:bg-slate-700/70 p-2 rounded-full backdrop-blur-sm transition hover:bg-white dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400">
+                <!-- Tombol Ganti Tema (Dark Mode) -->
+                <button id="theme-toggle-button" class="absolute top-4 left-4 bg-white/70 dark:bg-slate-700/70 p-2 rounded-full backdrop-blur-sm transition hover:bg-white dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400" title="Ganti Tema">
+                    <!-- Ikon Matahari (Light Mode) -->
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-700 dark:text-gray-200 dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
                     </svg>
+                    <!-- Ikon Bulan (Dark Mode) -->
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-700 dark:text-gray-200 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                     </svg>
                 </button>
                 
-                <button id="share-button" class="absolute top-4 right-4 bg-white/70 dark:bg-slate-700/70 p-2 rounded-full backdrop-blur-sm transition hover:bg-white dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400">
+                <!-- Tombol Bagikan -->
+                <button id="share-button" class="absolute top-4 right-4 bg-white/70 dark:bg-slate-700/70 p-2 rounded-full backdrop-blur-sm transition hover:bg-white dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400" title="Bagikan Halaman">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-700 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12s-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
                     </svg>
                 </button>
 
+                <!-- Logo Sekolah -->
                 <img class="w-24 h-24 rounded-full border-4 border-white dark:border-slate-800 shadow-lg
                             absolute left-1/2 -translate-x-1/2 bottom-0 translate-y-1/2" 
                      src="https://raw.githubusercontent.com/Laravelya/laravelya.github.io/refs/heads/main/sdnegeripalupi/img/1be1efae-146f-41ac-ac7d-be938001e8e9_980x980.webp.webp" 
                      alt="Logo SDN Palupi">
             </div>
 
+            <!-- Bagian Info Teks -->
             <div class="pt-16 pb-6 px-6 text-center">
                 <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100">
                     SD Negeri Palupi
@@ -76,42 +88,43 @@
                 </div>
             </div>
 
+            <!-- Bagian Tombol Navigasi -->
             <nav class="px-6 pb-8 space-y-4">
                 
-                <a href="https://docs.google.com/spreadsheets/d/1NlSbK6MYXQQdl3N652sipGmxKZla-x02/edit?usp=sharing&ouid=107391124208902251342&rtpof=true&sd=true" class="flex items-center justify-center w-full p-4 rounded-lg text-white font-semibold shadow-md
-                               bg-red-500 hover:bg-red-600 
-                               transition duration-300 ease-in-out transform hover:scale-105
-                               focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+                <a href="https://docs.google.com/spreadsheets/d/1NlSbK6MYXQQdl3N652sipGmxKZla-x02/edit?usp=sharing&ouid=107391124208902251342&rtpof=true&sd=true" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center w-full p-4 rounded-lg text-white font-semibold shadow-md
+                                  bg-red-500 hover:bg-red-600 
+                                  transition duration-300 ease-in-out transform hover:scale-105
+                                  focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
                     </svg>
                     <span>Profil Sekolah</span>
                 </a>
 
-                <a href="https://docs.google.com/spreadsheets/d/1Nz8jsZXW18w9G_caSBM9CdPaMEgyOrRd/edit?usp=sharing&ouid=107391124208902251342&rtpof=true&sd=true" class="flex items-center justify-center w-full p-4 rounded-lg text-white font-semibold shadow-md
-                               bg-green-500 hover:bg-green-600
-                               transition duration-300 ease-in-out transform hover:scale-105
-                               focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                <a href="https://docs.google.com/spreadsheets/d/1Nz8jsZXW18w9G_caSBM9CdPaMEgyOrRd/edit?usp=sharing&ouid=107391124208902251342&rtpof=true&sd=true" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center w-full p-4 rounded-lg text-white font-semibold shadow-md
+                                  bg-green-500 hover:bg-green-600
+                                  transition duration-300 ease-in-out transform hover:scale-105
+                                  focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-2.29l-2.122 2.122a1 1 0 01-1.414 0l-2.122-2.122A3 3 0 003 18v2h5m0-13v-2a3 3 0 013-3h4a3 3 0 013 3v2m-6 0h6" />
                     </svg>
                     <span>Data Guru dan Tendik</span>
                 </a>
 
-                <a href="https://docs.google.com/spreadsheets/d/1mk5Qcj61VDPxNjjsFZfvgHg_S4cfP3dV/edit?usp=sharing&ouid=107391124208902251342&rtpof=true&sd=true" class="flex items-center justify-center w-full p-4 rounded-lg text-white font-semibold shadow-md
-                               bg-blue-500 hover:bg-blue-600
-                               transition duration-300 ease-in-out transform hover:scale-105
-                               focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                <a href="https://docs.google.com/spreadsheets/d/1mk5Qcj61VDPxNjjsFZfvgHg_S4cfP3dV/edit?usp=sharing&ouid=107391124208902251342&rtpof=true&sd=true" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center w-full p-4 rounded-lg text-white font-semibold shadow-md
+                                  bg-blue-500 hover:bg-blue-600
+                                  transition duration-300 ease-in-out transform hover:scale-105
+                                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                     </svg>
                     <span>Jumlah Siswa</span>
                 </a>
 
-                <a href="https://drive.google.com/drive/folders/1cv6xviUr9Xz0tP1oRxgN5kjllSI3wlOC?usp=sharing" class="flex items-center justify-center w-full p-4 rounded-lg text-white font-semibold shadow-md
-                               bg-red-700 hover:bg-red-800
-                               transition duration-300 ease-in-out transform hover:scale-105
-                               focus:outline-none focus:ring-2 focus:ring-red-700 focus:ring-offset-2">
+                <a href="https://drive.google.com/drive/folders/1cv6xviUr9Xz0tP1oRxgN5kjllSI3wlOC?usp=sharing" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center w-full p-4 rounded-lg text-white font-semibold shadow-md
+                                  bg-red-700 hover:bg-red-800
+                                  transition duration-300 ease-in-out transform hover:scale-105
+                                  focus:outline-none focus:ring-2 focus:ring-red-700 focus:ring-offset-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -119,20 +132,20 @@
                     <span>Foto Kegiatan Sekolah</span>
                 </a>
 
-                <a href="https://forms.gle/iYJ18ALxm3DuVptKA" class="flex items-center justify-center w-full p-4 rounded-lg text-white font-semibold shadow-md
-                               bg-yellow-500 hover:bg-yellow-600
-                               transition duration-300 ease-in-out transform hover:scale-105
-                               focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2">
+                <a href="https://forms.gle/iYJ18ALxm3DuVptKA" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center w-full p-4 rounded-lg text-white font-semibold shadow-md
+                                  bg-yellow-500 hover:bg-yellow-600
+                                  transition duration-300 ease-in-out transform hover:scale-105
+                                  focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                     </svg>
                     <span>Lapor Kehadiran Siswa Perkelas</span>
                 </a>
 
-                <a href="https://docs.google.com/spreadsheets/d/1Bcp2w1MTjBmrPwXEIXyRi7y8a2hs6r1LSBM4GWmDsKQ/edit?usp=sharing" class="flex items-center justify-center w-full p-4 rounded-lg text-white font-semibold shadow-md
-                               bg-indigo-500 hover:bg-indigo-600
-                               transition duration-300 ease-in-out transform hover:scale-105
-                               focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                <a href="https://docs.google.com/spreadsheets/d/1Bcp2w1MTjBmrPwXEIXyRi7y8a2hs6r1LSBM4GWmDsKQ/edit?usp=sharing" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center w-full p-4 rounded-lg text-white font-semibold shadow-md
+                                  bg-indigo-500 hover:bg-indigo-600
+                                  transition duration-300 ease-in-out transform hover:scale-105
+                                  focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -140,34 +153,37 @@
                     <span>Lihat Kehadiran Siswa</span>
                 </a>
 
-                </nav>
+                <!-- Tombol WhatsApp yang dipindahkan ke dalam nav -->
+                <a href="https://wa.me/6281342294385" 
+                   target="_blank" 
+                   rel="noopener noreferrer" 
+                   title="Hubungi via WhatsApp"
+                   class="flex items-center justify-center w-full p-4 rounded-lg text-white font-semibold shadow-md
+                          bg-green-500 hover:bg-green-600 
+                          transition duration-300 ease-in-out transform hover:scale-105
+                          focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                    
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.173-.172.223-.296.322-.495.099-.198.05-.371-.025-.521-.075-.149-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.296-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.626.712.227 1.36.195 1.871.118.571-.078 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+                    </svg>
+                    <span>Hubungi via WhatsApp</span>
+                </a>
+
+            </nav>
         </main>
     
-    </div> <footer class="w-full max-w-md mx-auto text-center py-4">
+    </div>
+
+    <!-- Footer -->
+    <footer class="w-full max-w-md mx-auto text-center py-4">
         <p class="text-xs text-gray-600 dark:text-gray-400">
-            &copy; 2025 SD Negeri Palupi
+            &copy; 2025 SD Negeri Palupi 
             <br class="sm:hidden">
         </p>
     </footer>
 
-    <a href="https://wa.me/6281342294385" target="_blank" 
-       rel="noopener noreferrer" 
-       title="Hubungi via WhatsApp"
-       class="fixed bottom-20 right-8 z-50 bg-green-500 text-white p-4 rounded-full shadow-lg
-              hover:bg-green-600 transition-all duration-300 ease-in-out
-              transform hover:scale-110 focus:outline-none focus:ring-2 
-              focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900">
-       
-       <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-           <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.173-.172.223-.296.322-.495.099-.198.05-.371-.025-.521-.075-.149-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.296-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.626.712.227 1.36.195 1.871.118.571-.078 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
-       </svg>
-       
-       <span class="sr-only">Hubungi via WhatsApp</span> 
-    </a>
-
-
     <script>
-        function _0x55bf(_0x17b3cc,_0x5b274c){const _0x6aa4cb=_0x6aa4();return _0x55bf=function(_0x55bfe5,_0x4e7d7d){_0x55bfe5=_0x55bfe5-0x1b0;let _0x3d8694=_0x6aa4cb[_0x55bfe5];return _0x3d8694;},_0x55bf(_0x17b3cc,_0x5b274c);}const _0x16bba2=_0x55bf;(function(_0x4e71e0,_0x1b4b27){const _0x132aca=_0x55bf,_0x9c998e=_0x4e71e0();while(!![]){try{const _0x3dfae8=-parseInt(_0x132aca(0x1cf))/0x1+parseInt(_0x132aca(0x1c5))/0x2*(parseInt(_0x132aca(0x1c8))/0x3)+-parseInt(_0x132aca(0x1cb))/0x4+parseInt(_0x132aca(0x1d1))/0x5+-parseInt(_0x132aca(0x1b9))/0x6+-parseInt(_0x132aca(0x1be))/0x7+parseInt(_0x132aca(0x1bb))/0x8;if(_0x3dfae8===_0x1b4b27)break;else _0x9c998e['push'](_0x9c998e['shift']());}catch(_0x53cabc){_0x9c998e['push'](_0x9c998e['shift']());}}}(_0x6aa4,0x6862d),window['addEventListener'](_0x16bba2(0x1c4),()=>{const _0x217516=_0x16bba2,_0x44c563=document[_0x217516(0x1c1)](_0x217516(0x1b7));_0x44c563&&setTimeout(()=>{const _0x8219=_0x217516;_0x44c563[_0x8219(0x1b6)][_0x8219(0x1c7)]('loaded');},0xa);const _0x4471ac=document['getElementById'](_0x217516(0x1bc));_0x4471ac&&_0x4471ac[_0x217516(0x1b3)](_0x217516(0x1ba),async()=>{const _0x5a6683=_0x217516,_0x2446ec={'title':_0x5a6683(0x1b0),'text':_0x5a6683(0x1ca),'url':window[_0x5a6683(0x1b4)]['href']};if(navigator[_0x5a6683(0x1cc)])try{await navigator['share'](_0x2446ec);}catch(_0x46eda4){console[_0x5a6683(0x1d0)](_0x5a6683(0x1bd),_0x46eda4);}else{if(navigator[_0x5a6683(0x1b8)])try{await navigator[_0x5a6683(0x1b8)][_0x5a6683(0x1c6)](window[_0x5a6683(0x1b4)][_0x5a6683(0x1b1)]),alert('Link\x20profil\x20sekolah\x20telah\x20disalin\x20ke\x20clipboard!');}catch(_0x39f111){alert(_0x5a6683(0x1c3));}else alert('Fitur\x20berbagi\x20tidak\x20didukung.\x20Silakan\x20salin\x20link\x20secara\x20manual.');}});const _0xc097ce=document[_0x217516(0x1c1)](_0x217516(0x1c0)),_0x4f5ebe=document[_0x217516(0x1b2)];_0xc097ce&&_0xc097ce['addEventListener']('click',()=>{const _0x5f006a=_0x217516,_0x14be44=_0x4f5ebe['classList'][_0x5f006a(0x1c2)](_0x5f006a(0x1b5));_0x14be44?(_0x4f5ebe[_0x5f006a(0x1b6)][_0x5f006a(0x1cd)](_0x5f006a(0x1b5)),localStorage[_0x5f006a(0x1ce)](_0x5f006a(0x1c9),_0x5f006a(0x1bf))):(_0x4f5ebe[_0x5f006a(0x1b6)]['add'](_0x5f006a(0x1b5)),localStorage[_0x5f006a(0x1ce)](_0x5f006a(0x1c9),_0x5f006a(0x1b5)));});}));function _0x6aa4(){const _0x31c78d=['writeText','add','126urBVsi','theme','Lihat\x20profil\x20singkat\x20SD\x20Negeri\x20Palupi.','2340292yJIwvb','share','remove','setItem','633970YRiLjR','error','787855LzVbhM','Profil\x20SD\x20Negeri\x20Palupi','href','documentElement','addEventListener','location','dark','classList','profile-card','clipboard','5076246RyYveM','click','19706856ScGieJ','share-button','Gagal\x20membagikan:','5846855cwEUUs','light','theme-toggle-button','getElementById','contains','Fitur\x20berbagi\x20tidak\x20didukung.\x20Silakan\x20salin\x20link\x20secara\x20manual.','DOMContentLoaded','33666CBOUmF'];_0x6aa4=function(){return _0x31c78d;};return _0x6aa4();}
+        function _0x3b69(){const _0xa3b5b=['share','profile-card','light','add','theme','classList','229626mXPEgh','getElementById','67902tcOmvS','23CKWZQt','3366874kXgnoZ','16040hfFYFH','8jhUGsg','addEventListener','12067qdYhHF','click','Lihat\x20profil\x20singkat\x20SD\x20Negeri\x20Palupi.','Fitur\x20berbagi\x20tidak\x20didukung.\x20Silakan\x20salin\x20link\x20secara\x20manual.','contains','Profil\x20SD\x20Negeri\x20Palupi','href','location','2248290MohTak','Gagal\x20membagikan:','theme-toggle-button','Link\x20profil\x20sekolah\x20telah\x20disalin\x20ke\x20clipboard!','clipboard','12yXXHSj','dark','setItem','loaded','1249440ksyVQR','error','3702681IGiGgB'];_0x3b69=function(){return _0xa3b5b;};return _0x3b69();}function _0x39d5(_0x450a7c,_0x6b547c){const _0x3b6953=_0x3b69();return _0x39d5=function(_0x39d5dc,_0x50d551){_0x39d5dc=_0x39d5dc-0x19a;let _0x53ea53=_0x3b6953[_0x39d5dc];return _0x53ea53;},_0x39d5(_0x450a7c,_0x6b547c);}const _0x254ab5=_0x39d5;(function(_0x4b859e,_0x444d3d){const _0x778cf1=_0x39d5,_0x131c35=_0x4b859e();while(!![]){try{const _0x4d8220=parseInt(_0x778cf1(0x19f))/0x1*(-parseInt(_0x778cf1(0x19e))/0x2)+-parseInt(_0x778cf1(0x1ac))/0x3+-parseInt(_0x778cf1(0x1b1))/0x4*(parseInt(_0x778cf1(0x1b5))/0x5)+parseInt(_0x778cf1(0x19c))/0x6+parseInt(_0x778cf1(0x1a0))/0x7+parseInt(_0x778cf1(0x1a2))/0x8*(parseInt(_0x778cf1(0x1b7))/0x9)+parseInt(_0x778cf1(0x1a1))/0xa*(parseInt(_0x778cf1(0x1a4))/0xb);if(_0x4d8220===_0x444d3d)break;else _0x131c35['push'](_0x131c35['shift']());}catch(_0x3340fa){_0x131c35['push'](_0x131c35['shift']());}}}(_0x3b69,0x642ab),window[_0x254ab5(0x1a3)]('DOMContentLoaded',()=>{const _0x557c6e=_0x254ab5,_0x1bfcc8=document['getElementById'](_0x557c6e(0x1b9));_0x1bfcc8&&setTimeout(()=>{const _0x5e87c6=_0x557c6e;_0x1bfcc8[_0x5e87c6(0x19b)][_0x5e87c6(0x1bb)](_0x5e87c6(0x1b4));},0xa);const _0x5eba5e=document[_0x557c6e(0x19d)]('share-button');_0x5eba5e&&_0x5eba5e[_0x557c6e(0x1a3)](_0x557c6e(0x1a5),async()=>{const _0xec49ff=_0x557c6e,_0x4438cd={'title':_0xec49ff(0x1a9),'text':_0xec49ff(0x1a6),'url':window[_0xec49ff(0x1ab)][_0xec49ff(0x1aa)]};if(navigator[_0xec49ff(0x1b8)])try{await navigator['share'](_0x4438cd);}catch(_0x763912){console[_0xec49ff(0x1b6)](_0xec49ff(0x1ad),_0x763912);}else{if(navigator['clipboard'])try{await navigator[_0xec49ff(0x1b0)]['writeText'](window[_0xec49ff(0x1ab)]['href']),alert(_0xec49ff(0x1af));}catch(_0x2da6b6){alert(_0xec49ff(0x1a7));}else alert(_0xec49ff(0x1a7));}});const _0x5e6ffd=document[_0x557c6e(0x19d)](_0x557c6e(0x1ae)),_0x1309f2=document['documentElement'];_0x5e6ffd&&_0x5e6ffd[_0x557c6e(0x1a3)]('click',()=>{const _0x5414e2=_0x557c6e,_0xbcb562=_0x1309f2[_0x5414e2(0x19b)][_0x5414e2(0x1a8)](_0x5414e2(0x1b2));_0xbcb562?(_0x1309f2['classList']['remove'](_0x5414e2(0x1b2)),localStorage[_0x5414e2(0x1b3)](_0x5414e2(0x19a),_0x5414e2(0x1ba))):(_0x1309f2[_0x5414e2(0x19b)][_0x5414e2(0x1bb)](_0x5414e2(0x1b2)),localStorage[_0x5414e2(0x1b3)](_0x5414e2(0x19a),_0x5414e2(0x1b2)));});}));
     </script>
 
 </body>
