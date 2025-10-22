@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="id"> <head>
+<html lang="id">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Lihat profil singkat, data guru, jumlah siswa, dan informasi penting lainnya dari SD Negeri Palupi, Kota Palu.">
@@ -14,12 +15,15 @@
         } else {
             document.documentElement.classList.remove('dark');
         }
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
         tailwind.config = {
             darkMode: 'class'
         }
     </script>
-
-    <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
         #profile-card {
@@ -33,38 +37,46 @@
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-slate-100 to-slate-300 dark:from-slate-900 dark:to-slate-800 min-h-screen flex flex-col p-4 transition-colors duration-300">
+<body class="bg-gradient-to-br from-slate-100 to-slate-300 dark:from-slate-900 dark:to-slate-800 min-h-screen flex flex-col p-4 transition-colors duration-300 font-sans">
 
+    <!-- Konten Utama: Kartu Profil terpusat -->
     <div class="flex-grow flex items-center justify-center w-full">
 
         <main id="profile-card" class="max-w-md w-full bg-white dark:bg-slate-800 rounded-2xl shadow-2xl dark:shadow-slate-900/50 overflow-hidden">
             
+            <!-- Bagian Header & Banner -->
             <div class="relative">
                 <img class="w-full h-40 object-cover" 
                      src="https://raw.githubusercontent.com/Laravelya/laravelya.github.io/refs/heads/main/sdnegeripalupi/img/3784ae5e-5025-4a49-a22a-3008435123e3_980x382.webp.webp" 
                      alt="Banner SDN Palupi">
                 
-                <button id="theme-toggle-button" class="absolute top-4 left-4 bg-white/70 dark:bg-slate-700/70 p-2 rounded-full backdrop-blur-sm transition hover:bg-white dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400">
+                <!-- Tombol Ganti Tema (Dark Mode) -->
+                <button id="theme-toggle-button" class="absolute top-4 left-4 bg-white/70 dark:bg-slate-700/70 p-2 rounded-full backdrop-blur-sm transition hover:bg-white dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400" title="Ganti Tema">
+                    <!-- Ikon Matahari (Light Mode) -->
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-700 dark:text-gray-200 dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
                     </svg>
+                    <!-- Ikon Bulan (Dark Mode) -->
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-700 dark:text-gray-200 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                     </svg>
                 </button>
                 
-                <button id="share-button" class="absolute top-4 right-4 bg-white/70 dark:bg-slate-700/70 p-2 rounded-full backdrop-blur-sm transition hover:bg-white dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400">
+                <!-- Tombol Bagikan -->
+                <button id="share-button" class="absolute top-4 right-4 bg-white/70 dark:bg-slate-700/70 p-2 rounded-full backdrop-blur-sm transition hover:bg-white dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400" title="Bagikan Halaman">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-700 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12s-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
                     </svg>
                 </button>
 
+                <!-- Logo Sekolah -->
                 <img class="w-24 h-24 rounded-full border-4 border-white dark:border-slate-800 shadow-lg
                             absolute left-1/2 -translate-x-1/2 bottom-0 translate-y-1/2" 
                      src="https://raw.githubusercontent.com/Laravelya/laravelya.github.io/refs/heads/main/sdnegeripalupi/img/1be1efae-146f-41ac-ac7d-be938001e8e9_980x980.webp.webp" 
                      alt="Logo SDN Palupi">
             </div>
 
+            <!-- Bagian Info Teks -->
             <div class="pt-16 pb-6 px-6 text-center">
                 <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100">
                     SD Negeri Palupi
@@ -76,42 +88,43 @@
                 </div>
             </div>
 
+            <!-- Bagian Tombol Navigasi -->
             <nav class="px-6 pb-8 space-y-4">
                 
-                <a href="https://docs.google.com/spreadsheets/d/1NlSbK6MYXQQdl3N652sipGmxKZla-x02/edit?usp=sharing&ouid=107391124208902251342&rtpof=true&sd=true" class="flex items-center justify-center w-full p-4 rounded-lg text-white font-semibold shadow-md
-                               bg-red-500 hover:bg-red-600 
-                               transition duration-300 ease-in-out transform hover:scale-105
-                               focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+                <a href="https://docs.google.com/spreadsheets/d/1NlSbK6MYXQQdl3N652sipGmxKZla-x02/edit?usp=sharing&ouid=107391124208902251342&rtpof=true&sd=true" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center w-full p-4 rounded-lg text-white font-semibold shadow-md
+                                  bg-red-500 hover:bg-red-600 
+                                  transition duration-300 ease-in-out transform hover:scale-105
+                                  focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
                     </svg>
                     <span>Profil Sekolah</span>
                 </a>
 
-                <a href="https://docs.google.com/spreadsheets/d/1Nz8jsZXW18w9G_caSBM9CdPaMEgyOrRd/edit?usp=sharing&ouid=107391124208902251342&rtpof=true&sd=true" class="flex items-center justify-center w-full p-4 rounded-lg text-white font-semibold shadow-md
-                               bg-green-500 hover:bg-green-600
-                               transition duration-300 ease-in-out transform hover:scale-105
-                               focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                <a href="https://docs.google.com/spreadsheets/d/1Nz8jsZXW18w9G_caSBM9CdPaMEgyOrRd/edit?usp=sharing&ouid=107391124208902251342&rtpof=true&sd=true" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center w-full p-4 rounded-lg text-white font-semibold shadow-md
+                                  bg-green-500 hover:bg-green-600
+                                  transition duration-300 ease-in-out transform hover:scale-105
+                                  focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-2.29l-2.122 2.122a1 1 0 01-1.414 0l-2.122-2.122A3 3 0 003 18v2h5m0-13v-2a3 3 0 013-3h4a3 3 0 013 3v2m-6 0h6" />
                     </svg>
                     <span>Data Guru dan Tendik</span>
                 </a>
 
-                <a href="https://docs.google.com/spreadsheets/d/1mk5Qcj61VDPxNjjsFZfvgHg_S4cfP3dV/edit?usp=sharing&ouid=107391124208902251342&rtpof=true&sd=true" class="flex items-center justify-center w-full p-4 rounded-lg text-white font-semibold shadow-md
-                               bg-blue-500 hover:bg-blue-600
-                               transition duration-300 ease-in-out transform hover:scale-105
-                               focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                <a href="https://docs.google.com/spreadsheets/d/1mk5Qcj61VDPxNjjsFZfvgHg_S4cfP3dV/edit?usp=sharing&ouid=107391124208902251342&rtpof=true&sd=true" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center w-full p-4 rounded-lg text-white font-semibold shadow-md
+                                  bg-blue-500 hover:bg-blue-600
+                                  transition duration-300 ease-in-out transform hover:scale-105
+                                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                     </svg>
                     <span>Jumlah Siswa</span>
                 </a>
 
-                <a href="https://drive.google.com/drive/folders/1cv6xviUr9Xz0tP1oRxgN5kjllSI3wlOC?usp=sharing" class="flex items-center justify-center w-full p-4 rounded-lg text-white font-semibold shadow-md
-                               bg-red-700 hover:bg-red-800
-                               transition duration-300 ease-in-out transform hover:scale-105
-                               focus:outline-none focus:ring-2 focus:ring-red-700 focus:ring-offset-2">
+                <a href="https://drive.google.com/drive/folders/1cv6xviUr9Xz0tP1oRxgN5kjllSI3wlOC?usp=sharing" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center w-full p-4 rounded-lg text-white font-semibold shadow-md
+                                  bg-red-700 hover:bg-red-800
+                                  transition duration-300 ease-in-out transform hover:scale-105
+                                  focus:outline-none focus:ring-2 focus:ring-red-700 focus:ring-offset-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -119,20 +132,20 @@
                     <span>Foto Kegiatan Sekolah</span>
                 </a>
 
-                <a href="https://forms.gle/iYJ18ALxm3DuVptKA" class="flex items-center justify-center w-full p-4 rounded-lg text-white font-semibold shadow-md
-                               bg-yellow-500 hover:bg-yellow-600
-                               transition duration-300 ease-in-out transform hover:scale-105
-                               focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2">
+                <a href="https://forms.gle/iYJ18ALxm3DuVptKA" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center w-full p-4 rounded-lg text-white font-semibold shadow-md
+                                  bg-yellow-500 hover:bg-yellow-600
+                                  transition duration-300 ease-in-out transform hover:scale-105
+                                  focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                     </svg>
                     <span>Lapor Kehadiran Siswa Perkelas</span>
                 </a>
 
-                <a href="https://docs.google.com/spreadsheets/d/1Bcp2w1MTjBmrPwXEIXyRi7y8a2hs6r1LSBM4GWmDsKQ/edit?usp=sharing" class="flex items-center justify-center w-full p-4 rounded-lg text-white font-semibold shadow-md
-                               bg-indigo-500 hover:bg-indigo-600
-                               transition duration-300 ease-in-out transform hover:scale-105
-                               focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                <a href="https://docs.google.com/spreadsheets/d/1Bcp2w1MTjBmrPwXEIXyRi7y8a2hs6r1LSBM4GWmDsKQ/edit?usp=sharing" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center w-full p-4 rounded-lg text-white font-semibold shadow-md
+                                  bg-indigo-500 hover:bg-indigo-600
+                                  transition duration-300 ease-in-out transform hover:scale-105
+                                  focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -140,32 +153,34 @@
                     <span>Lihat Kehadiran Siswa</span>
                 </a>
 
-                </nav>
+                <!-- Tombol WhatsApp yang dipindahkan ke dalam nav -->
+                <a href="https://wa.me/6281342294385" 
+                   target="_blank" 
+                   rel="noopener noreferrer" 
+                   title="Hubungi via WhatsApp"
+                   class="flex items-center justify-center w-full p-4 rounded-lg text-white font-semibold shadow-md
+                          bg-green-500 hover:bg-green-600 
+                          transition duration-300 ease-in-out transform hover:scale-105
+                          focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                    
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.173-.172.223-.296.322-.495.099-.198.05-.371-.025-.521-.075-.149-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.296-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.626.712.227 1.36.195 1.871.118.571-.078 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+                    </svg>
+                    <span>Hubungi via WhatsApp</span>
+                </a>
+
+            </nav>
         </main>
     
-    </div> <footer class="w-full max-w-md mx-auto text-center py-4">
+    </div>
+
+    <!-- Footer -->
+    <footer class="w-full max-w-md mx-auto text-center py-4">
         <p class="text-xs text-gray-600 dark:text-gray-400">
             &copy; 2025 SD Negeri Palupi 
             <br class="sm:hidden">
         </p>
     </footer>
-
-    <a href="https://wa.me/6281342294385" 
-       target="_blank" 
-       rel="noopener noreferrer" 
-       title="Hubungi via WhatsApp"
-       class="fixed bottom-6 right-6 z-50 bg-green-500 text-white p-4 rounded-full shadow-lg
-              hover:bg-green-600 transition-all duration-300 ease-in-out
-              transform hover:scale-110 focus:outline-none focus:ring-2 
-              focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900">
-       
-       <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-           <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.173-.172.223-.296.322-.495.099-.198.05-.371-.025-.521-.075-.149-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.296-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.626.712.227 1.36.195 1.871.118.571-.078 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
-       </svg>
-       
-       <span class="sr-only">Hubungi via WhatsApp</span> 
-    </a>
-
 
     <script>
         window.addEventListener('DOMContentLoaded', () => {
@@ -195,6 +210,7 @@
                     } else if (navigator.clipboard) {
                         try {
                             await navigator.clipboard.writeText(window.location.href);
+
                             alert('Link profil sekolah telah disalin ke clipboard!');
                         } catch (err) {
                             alert('Fitur berbagi tidak didukung. Silakan salin link secara manual.');
