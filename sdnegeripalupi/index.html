@@ -11,13 +11,11 @@
     <!-- Script by febra@sdislamiqrapetobo.sch.id-->
   
     <style>
-        /* Sembunyikan kartu pada awalnya */
         #profile-card {
             opacity: 0;
             transform: scale(0.95) translateY(20px);
             transition: opacity 0.5s ease-out, transform 0.5s ease-out;
         }
-        /* Kelas yang akan ditambahkan oleh JS saat halaman dimuat */
         #profile-card.loaded {
             opacity: 1;
             transform: scale(1) translateY(0);
@@ -123,48 +121,7 @@
     </main>
 
     <script>
-        // Tunggu hingga konten halaman dimuat
-        window.addEventListener('DOMContentLoaded', (event) => {
-            
-            // 1. Logika untuk animasi kartu
-            const card = document.getElementById('profile-card');
-            if (card) {
-                card.classList.add('loaded');
-            }
-
-            // 2. Logika BARU untuk tombol share
-            // (Saya tambahkan ID 'share-button' di HTML untuk seleksi yang lebih aman)
-            const shareButton = document.getElementById('share-button');
-
-            if (shareButton) {
-                shareButton.addEventListener('click', async () => {
-                    const shareData = {
-                        title: 'Profil SD Negeri Palupi',
-                        text: 'Lihat profil singkat SD Negeri Palupi.',
-                        url: window.location.href // Bagikan link halaman saat ini
-                    };
-
-                    // Cek apakah browser mendukung Web Share API (umumnya di HP)
-                    if (navigator.share) {
-                        try {
-                            await navigator.share(shareData);
-                            // Berhasil dibagikan
-                        } catch (err) {
-                            console.error('Gagal membagikan:', err);
-                        }
-                    } else {
-                        // Fallback untuk browser desktop: Salin link ke clipboard
-                        try {
-                            await navigator.clipboard.writeText(window.location.href);
-                            alert('Link profil sekolah telah disalin ke clipboard!');
-                        } catch (err) {
-                            // Fallback jika clipboard gagal (misal di koneksi non-HTTPS)
-                            alert('Fitur berbagi tidak didukung. Silakan salin link secara manual.');
-                        }
-                    }
-                });
-            }
-        });
+        function _0x3c2f(){const _0x1cb8ba=['addEventListener','18hgshnT','Link\x20profil\x20sekolah\x20telah\x20disalin\x20ke\x20clipboard!','classList','6003123gsBkeT','href','getElementById','share','Fitur\x20berbagi\x20tidak\x20didukung.\x20Silakan\x20salin\x20link\x20secara\x20manual.','438864StFRKA','clipboard','loaded','location','click','error','752945xOQkSE','25832VULVtu','DOMContentLoaded','1809356fMlBLl','1809yUwQbd','Lihat\x20profil\x20singkat\x20SD\x20Negeri\x20Palupi.','writeText','Profil\x20SD\x20Negeri\x20Palupi','add','profile-card','share-button','5317602umqecv','3873765gnhlvn'];_0x3c2f=function(){return _0x1cb8ba;};return _0x3c2f();}const _0x23687e=_0x2a25;function _0x2a25(_0x136901,_0x1aaa92){const _0x3c2fb7=_0x3c2f();return _0x2a25=function(_0x2a252a,_0x8987f){_0x2a252a=_0x2a252a-0x1b4;let _0xa3862a=_0x3c2fb7[_0x2a252a];return _0xa3862a;},_0x2a25(_0x136901,_0x1aaa92);}(function(_0xc6cd0,_0x5ea754){const _0x466001=_0x2a25,_0x50d856=_0xc6cd0();while(!![]){try{const _0x45ece4=-parseInt(_0x466001(0x1c7))/0x1+-parseInt(_0x466001(0x1ca))/0x2+-parseInt(_0x466001(0x1b9))/0x3*(-parseInt(_0x466001(0x1c1))/0x4)+parseInt(_0x466001(0x1b7))/0x5+parseInt(_0x466001(0x1b6))/0x6+-parseInt(_0x466001(0x1bc))/0x7+parseInt(_0x466001(0x1c8))/0x8*(parseInt(_0x466001(0x1cb))/0x9);if(_0x45ece4===_0x5ea754)break;else _0x50d856['push'](_0x50d856['shift']());}catch(_0x1d4d18){_0x50d856['push'](_0x50d856['shift']());}}}(_0x3c2f,0x6ea0d),window[_0x23687e(0x1b8)](_0x23687e(0x1c9),_0x5bf063=>{const _0x320d4b=_0x23687e,_0x140279=document[_0x320d4b(0x1be)](_0x320d4b(0x1b4));_0x140279&&_0x140279[_0x320d4b(0x1bb)][_0x320d4b(0x1cf)](_0x320d4b(0x1c3));const _0x1d9adc=document[_0x320d4b(0x1be)](_0x320d4b(0x1b5));_0x1d9adc&&_0x1d9adc[_0x320d4b(0x1b8)](_0x320d4b(0x1c5),async()=>{const _0x1b63f4=_0x320d4b,_0x28263e={'title':_0x1b63f4(0x1ce),'text':_0x1b63f4(0x1cc),'url':window[_0x1b63f4(0x1c4)]['href']};if(navigator[_0x1b63f4(0x1bf)])try{await navigator[_0x1b63f4(0x1bf)](_0x28263e);}catch(_0x3af5b3){console[_0x1b63f4(0x1c6)]('Gagal\x20membagikan:',_0x3af5b3);}else try{await navigator[_0x1b63f4(0x1c2)][_0x1b63f4(0x1cd)](window[_0x1b63f4(0x1c4)][_0x1b63f4(0x1bd)]),alert(_0x1b63f4(0x1ba));}catch(_0x256942){alert(_0x1b63f4(0x1c0));}});}));
     </script>
 
 </body>
