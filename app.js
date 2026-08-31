@@ -120,16 +120,31 @@ function showDashboard(nama) {
     const namaHari = getHariIndonesia(wita);
     const tanggalHariIni = wita.toISOString().split('T')[0];
     
-    const statusSimpanKey = `status_absen_${currentUserData.username}_${tanggalHariIni}`;
-    let statusHariIni = localStorage.getItem(statusSimpanKey) || "Belum Absen";
-    let warnaStatus = statusHariIni === "Belum Absen" ? "#d9534f" : "#198754";
+    const keyMasuk = `status_masuk_${currentUserData.username}_${tanggalHariIni}`;
+    const keyKeluar = `status_keluar_${currentUserData.username}_${tanggalHariIni}`;
+    const keyIzin = `status_izin_${currentUserData.username}_${tanggalHariIni}`;
+    
+    let statusMasuk = localStorage.getItem(keyMasuk) || "Belum";
+    let statusKeluar = localStorage.getItem(keyKeluar) || "Belum";
+    let statusIzin = localStorage.getItem(keyIzin);
+
+    let infoStatusHTML = "";
+
+    if (statusIzin) {
+        infoStatusHTML = `<span style="color: #ffc107; font-weight: bold;">${statusIzin}</span>`;
+    } else {
+        let textMasukColor = statusMasuk === "Sudah" ? "#198754" : "#d9534f";
+        let textKeluarColor = statusKeluar === "Sudah" ? "#198754" : "#d9534f";
+        
+        infoStatusHTML = `Masuk: <span style="color: ${textMasukColor}; font-weight: bold;">${statusMasuk}</span> | Keluar: <span style="color: ${textKeluarColor}; font-weight: bold;">${statusKeluar}</span>`;
+    }
 
     document.getElementById('userInfo').innerHTML = `
-        <b>Hari / Tanggal:</b> ${namaHari}, ${tanggalHariIni}<br>
+        <b>Hari / Tanggal:</b> ${namaHari}, ${tanggalHariIni} WITA<br>
         <b>Nama:</b> ${currentUserData.nama}<br>
         <b>NUPTK:</b> ${currentUserData.nuptk}<br>
         <b>Jabatan:</b> ${currentUserData.jabatan}<br>
-        <b>Status Hari Ini:</b> <span id="textStatusAbsen" style="color: ${warnaStatus}; font-weight: bold;">${statusHariIni}</span>
+        <b>Status Hari Ini:</b> <span id="textStatusAbsen">${infoStatusHTML}</span>
     `;
 }
 
@@ -143,7 +158,6 @@ function updateClock() {
 setInterval(updateClock, 1000);
 
 function bukaForm(jenis) {
-    // Jika memilih Izin atau Sakit, abaikan validasi waktu (bebas hari dan jam)
     if (jenis === 'Izin') {
         modePilihan = "Izin";
         document.getElementById('mainButtons').classList.add('hidden');
@@ -151,7 +165,6 @@ function bukaForm(jenis) {
         return;
     }
 
-    // Validasi Waktu KHUSUS untuk Absen Masuk dan Keluar (Senin-Jumat, 06.30 - 23.59 WITA)
     const now = new Date();
     const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
     const wita = new Date(utc + (3600000 * 8));
@@ -288,17 +301,19 @@ function kirim(pos, adaFoto) {
             const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
             const wita = new Date(utc + (3600000 * 8));
             const tglHariIni = wita.toISOString().split('T')[0];
-            const statusKey = `status_absen_${currentUserData.username}_${tglHariIni}`;
-            
-            let statusTerbaru = adaFoto ? `Sudah Absen (${modePilihan})` : document.getElementById('jenisIzin').value;
-            localStorage.setItem(statusKey, statusTerbaru);
 
-            const statusEl = document.getElementById('textStatusAbsen');
-            if(statusEl) {
-                statusEl.innerText = statusTerbaru;
-                statusEl.style.color = "#198754";
+            if (adaFoto) {
+                if (modePilihan === "Masuk") {
+                    localStorage.setItem(`status_masuk_${currentUserData.username}_${tglHariIni}`, "Sudah");
+                } else if (modePilihan === "Keluar") {
+                    localStorage.setItem(`status_keluar_${currentUserData.username}_${tglHariIni}`, "Sudah");
+                }
+            } else {
+                let jenisIzinVal = document.getElementById('jenisIzin').value;
+                localStorage.setItem(`status_izin_${currentUserData.username}_${tglHariIni}`, jenisIzinVal);
             }
 
+            showDashboard(currentUserData.nama);
             batal();
         } else {
             alert("Error: " + res.message);
