@@ -1,5 +1,6 @@
-const GAS_URL = "https://script.google.com/macros/s/AKfycbz7icYUkFrdgZO2kA82WsvoXOG2kisOUBBq7Txvq31k_tC-a7Dv3vOKc55KgbvaRpL9/exec"; 
-const SECRET_TOKEN = "ErangaT0ken_2026";
+// === KONFIGURASI UTAMA ===
+const GAS_URL = "URL_GOOGLE_APPS_SCRIPT_ANDA"; // Ganti dengan URL Web App Apps Script Anda
+const SECRET_TOKEN = "AbsensiRahasia123!";
 
 const SCHOOL_LAT = -8.670458;  
 const SCHOOL_LNG = 115.212629; 
@@ -19,7 +20,7 @@ function terimaDataWiFiFromAndroid(ssid, bssid) {
     bssidSiswa = bssid.replace(/"/g, "").trim().toLowerCase();
 }
 
-// --- PERSISTENT LOGIN ---
+// --- PERSISTENT LOGIN (LocalStorage & Cookie) ---
 function simpanSesi(userData) {
     localStorage.setItem("session_user", JSON.stringify(userData));
     document.cookie = "user_session=" + encodeURIComponent(JSON.stringify(userData)) + "; max-age=" + (365*24*60*60) + "; path=/; Secure; SameSite=Strict";
@@ -103,16 +104,32 @@ function logout() {
     location.reload();
 }
 
+function getHariIndonesia(date) {
+    const hariArray = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+    return hariArray[date.getDay()];
+}
+
 function showDashboard(nama) {
     document.getElementById('loginSection').classList.add('hidden');
     document.getElementById('dashboardSection').classList.remove('hidden');
     document.getElementById('displayUser').innerText = nama;
 
+    const now = new Date();
+    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+    const wita = new Date(utc + (3600000 * 8));
+    const namaHari = getHariIndonesia(wita);
+    const tanggalHariIni = wita.toISOString().split('T')[0];
+    
+    const statusSimpanKey = `status_absen_${currentUserData.username}_${tanggalHariIni}`;
+    let statusHariIni = localStorage.getItem(statusSimpanKey) || "Belum Absen";
+    let warnaStatus = statusHariIni === "Belum Absen" ? "#d9534f" : "#198754";
+
     document.getElementById('userInfo').innerHTML = `
+        <b>Hari / Tanggal:</b> ${namaHari}, ${tanggalHariIni} WITA<br>
         <b>Nama:</b> ${currentUserData.nama}<br>
         <b>NUPTK:</b> ${currentUserData.nuptk}<br>
-        <b>JK:</b> ${currentUserData.jenisKelamin}<br>
-        <b>Jabatan:</b> ${currentUserData.jabatan}
+        <b>Jabatan:</b> ${currentUserData.jabatan}<br>
+        <b>Status Hari Ini:</b> <span id="textStatusAbsen" style="color: ${warnaStatus}; font-weight: bold;">${statusHariIni}</span>
     `;
 }
 
@@ -259,6 +276,22 @@ function kirim(pos, adaFoto) {
     .then(res => {
         if(res.status === "success") {
             alert("Absen Berhasil Dicatat!");
+
+            const now = new Date();
+            const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+            const wita = new Date(utc + (3600000 * 8));
+            const tglHariIni = wita.toISOString().split('T')[0];
+            const statusKey = `status_absen_${currentUserData.username}_${tglHariIni}`;
+            
+            let statusTerbaru = adaFoto ? `Sudah Absen (${modePilihan})` : document.getElementById('jenisIzin').value;
+            localStorage.setItem(statusKey, statusTerbaru);
+
+            const statusEl = document.getElementById('textStatusAbsen');
+            if(statusEl) {
+                statusEl.innerText = statusTerbaru;
+                statusEl.style.color = "#198754";
+            }
+
             batal();
         } else {
             alert("Error: " + res.message);
