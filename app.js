@@ -126,15 +126,19 @@ function showDashboard(nama) {
     const btnKeluar = document.querySelector("button[onclick*=\"bukaForm('Keluar')\"]");
 
     if (statusIzin) {
-        infoStatusHTML = `<span style="color: #ffc107; font-weight: bold;">${statusIzin} (Izin Aktif)</span>`;
-        if (btnMasuk) { btnMasuk.disabled = true; btnMasuk.style.opacity = "0.5"; }
-        if (btnKeluar) { btnKeluar.disabled = true; btnKeluar.style.opacity = "0.5"; }
+        // Jika sudah izin/sakit, tampilkan status izin + Tombol Batal Izin
+        infoStatusHTML = `<span style="color: #ffc107; font-weight: bold;">${statusIzin} (Izin Aktif)</span><br><button onclick="batalkanIzin()" style="margin-top:8px; padding:6px 12px; background-color:#dc3545; color:white; border:none; border-radius:6px; font-size:12px; cursor:pointer;"><i class="fa-solid fa-rotate-left"></i> Batalkan Izin/Sakit</button>`;
+        
+        if (btnMasuk) { btnMasuk.disabled = true; btnMasuk.style.opacity = "0.5"; btnMasuk.style.cursor = "not-allowed"; }
+        if (btnKeluar) { btnKeluar.disabled = true; btnKeluar.style.opacity = "0.5"; btnKeluar.style.cursor = "not-allowed"; }
     } else {
         let textMasukColor = statusMasuk === "Sudah" ? "#198754" : "#d9534f";
         let textKeluarColor = statusKeluar === "Sudah" ? "#198754" : "#d9534f";
+        
         infoStatusHTML = `Masuk: <span style="color: ${textMasukColor}; font-weight: bold;">${statusMasuk}</span> | Keluar: <span style="color: ${textKeluarColor}; font-weight: bold;">${statusKeluar}</span>`;
-        if (btnMasuk) { btnMasuk.disabled = false; btnMasuk.style.opacity = "1"; }
-        if (btnKeluar) { btnKeluar.disabled = false; btnKeluar.style.opacity = "1"; }
+        
+        if (btnMasuk) { btnMasuk.disabled = false; btnMasuk.style.opacity = "1"; btnMasuk.style.cursor = "pointer"; }
+        if (btnKeluar) { btnKeluar.disabled = false; btnKeluar.style.opacity = "1"; btnKeluar.style.cursor = "pointer"; }
     }
 
     document.getElementById('userInfo').innerHTML = `
@@ -144,6 +148,25 @@ function showDashboard(nama) {
         <b>Jabatan:</b> ${currentUserData.jabatan}<br>
         <b>Status Hari Ini:</b> <span id="textStatusAbsen">${infoStatusHTML}</span>
     `;
+}
+
+// Fungsi Baru untuk Membatalkan Izin / Sakit
+function batalkanIzin() {
+    if (confirm("Apakah Anda yakin ingin membatalkan permohonan Izin / Sakit ini? Tombol Absen Masuk dan Keluar akan diaktifkan kembali.")) {
+        const now = new Date();
+        const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+        const wita = new Date(utc + (3600000 * 8));
+        const tanggalHariIni = wita.toISOString().split('T')[0];
+        
+        const keyIzin = `status_izin_${currentUserData.username}_${tanggalHariIni}`;
+        
+        // Hapus status izin dari localStorage
+        localStorage.removeItem(keyIzin);
+
+        // Refresh tampilan dashboard
+        showDashboard(currentUserData.username);
+        alert("Permohonan Izin / Sakit berhasil dibatalkan. Anda sekarang dapat melakukan Absen Masuk.");
+    }
 }
 
 function updateClock() {
