@@ -4,7 +4,8 @@ const SECRET_TOKEN = "ErangaT0ken_2026";
 
 const DAFTAR_BSSID_SEKOLAH = [
     "00:1a:2b:3c:4d:5e",
-    "11:22:33:44:55:66"
+    "11:22:33:44:55:66",
+    "9e:f5:cf:a1:b2:5b",
 ];
 
 let bssidSiswa = "";
