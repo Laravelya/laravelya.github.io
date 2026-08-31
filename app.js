@@ -1,4 +1,4 @@
-const GAS_URL = "URL_GOOGLE_APPS_SCRIPT_ANDA"; 
+const GAS_URL = "https://script.google.com/macros/s/AKfycbz7icYUkFrdgZO2kA82WsvoXOG2kisOUBBq7Txvq31k_tC-a7Dv3vOKc55KgbvaRpL9/exec"; 
 const SECRET_TOKEN = "ErangaT0ken_2026";
 
 const SCHOOL_LAT = -8.670458;  
