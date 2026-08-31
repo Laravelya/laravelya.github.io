@@ -76,7 +76,7 @@
             padding: 12px 14px 12px 42px; 
             border: 1px solid #dcdde1; 
             border-radius: 8px; 
-            font-size: 16px; /* Font input diperbesar agar pas di HP */
+            font-size: 16px; 
             box-sizing: border-box; 
             outline: none; 
             transition: border-color 0.2s; 
@@ -148,9 +148,26 @@
             margin-top: 25px;
         }
 
-        /* Styling Dashboard & Menu Lainnya (Tetap Fungsional) */
+        /* Styling Dashboard & Menu Lainnya */
         #dashboardSection { text-align: center; }
-        .user-info { text-align: left; background: #eef2f5; padding: 12px; border-radius: 8px; font-size: 13px; margin-bottom: 15px; }
+        
+        /* Kotak Profil yang Diperbarui (Lebih Profesional & Legible) */
+        .user-info { 
+            text-align: left; 
+            background: #f1f3f5; 
+            padding: 16px; 
+            border-radius: 12px; 
+            font-size: 14px; 
+            margin-bottom: 20px; 
+            line-height: 1.6; 
+            color: #2c3e50;
+            border-left: 4px solid #43ba92; 
+        }
+        .user-info b {
+            color: #34495e;
+            font-weight: 600;
+        }
+
         #clock { font-size: 24px; font-weight: bold; margin: 10px 0; color: #2c3e50; }
         #video { width: 100%; border-radius: 8px; background: #000; transform: scaleX(-1); }
         #canvas { display: none; }
@@ -242,7 +259,6 @@
     </div>
 </div>
 
-<!-- Memuat file JavaScript terpisah (app.js) -->
 <script src="app.js"></script>
 </body>
 </html>
