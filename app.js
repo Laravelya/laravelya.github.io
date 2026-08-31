@@ -125,7 +125,7 @@ function showDashboard(nama) {
     let warnaStatus = statusHariIni === "Belum Absen" ? "#d9534f" : "#198754";
 
     document.getElementById('userInfo').innerHTML = `
-        <b>Hari / Tanggal:</b> ${namaHari}, ${tanggalHariIni} WITA<br>
+        <b>Hari / Tanggal:</b> ${namaHari}, ${tanggalHariIni}<br>
         <b>Nama:</b> ${currentUserData.nama}<br>
         <b>NUPTK:</b> ${currentUserData.nuptk}<br>
         <b>Jabatan:</b> ${currentUserData.jabatan}<br>
