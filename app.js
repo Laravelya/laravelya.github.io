@@ -111,7 +111,8 @@ function showDashboard(nama) {
     document.getElementById('userInfo').innerHTML = `
         <b>Nama:</b> ${currentUserData.nama}<br>
         <b>NUPTK:</b> ${currentUserData.nuptk}<br>
-        <b>JK:</b> ${currentUserData.jenisKelamin} | <b>Jabatan:</b> ${currentUserData.jabatan}
+        <b>JK:</b> ${currentUserData.jenisKelamin}<br>
+        <b>Jabatan:</b> ${currentUserData.jabatan}
     `;
 }
 
