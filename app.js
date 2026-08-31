@@ -176,6 +176,7 @@ async function showDashboard(nama) {
         <b>Status Hari Ini:</b> <span id="textStatusAbsen">${infoStatusHTML}</span>
     `;
 }
+
 // Fungsi Baru untuk Membatalkan Izin / Sakit (Dengan Logging ke Server)
 function batalkanIzin() {
     if (confirm("Apakah Anda yakin ingin membatalkan permohonan Izin / Sakit ini? Tombol Absen Masuk dan Keluar akan diaktifkan kembali.")) {
@@ -203,8 +204,8 @@ function batalkanIzin() {
                 // Hapus status izin dari localStorage
                 localStorage.removeItem(keyIzin);
 
-                // Refresh tampilan dashboard
-                showDashboard(currentUserData.username);
+                // Refresh tampilan dashboard menggunakan nama lengkap
+                showDashboard(currentUserData.nama);
                 alert("Permohonan Izin / Sakit berhasil dibatalkan dan dicatat ke sistem.");
             } else {
                 alert("Gagal mencatat pembatalan ke server: " + res.message);
@@ -345,7 +346,8 @@ function kirim(pos, adaFoto) {
                 localStorage.setItem(`status_izin_${currentUserData.username}_${tglHariIni}`, jenisIzinVal);
             }
 
-            showDashboard(currentUserData.username);
+            // Refresh tampilan dashboard menggunakan nama lengkap
+            showDashboard(currentUserData.nama);
             batal();
         } else {
             alert("Ditolak Server: " + res.message);
