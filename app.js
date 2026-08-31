@@ -102,7 +102,7 @@ function getHariIndonesia(date) {
     return hariArray[date.getDay()];
 }
 
-function showDashboard(nama) {
+async function showDashboard(nama) {
     document.getElementById('loginSection').classList.add('hidden');
     document.getElementById('dashboardSection').classList.remove('hidden');
     document.getElementById('displayUser').innerText = nama;
@@ -113,26 +113,47 @@ function showDashboard(nama) {
     const namaHari = getHariIndonesia(wita);
     const tanggalHariIni = wita.toISOString().split('T')[0];
     
-    const keyMasuk = `status_masuk_${currentUserData.username}_${tanggalHariIni}`;
-    const keyKeluar = `status_keluar_${currentUserData.username}_${tanggalHariIni}`;
-    const keyIzin = `status_izin_${currentUserData.username}_${tanggalHariIni}`;
-    
-    let statusMasuk = localStorage.getItem(keyMasuk) || "Belum";
-    let statusKeluar = localStorage.getItem(keyKeluar) || "Belum";
-    let statusIzin = localStorage.getItem(keyIzin);
+    // Tampilkan teks loading sementara mengambil data dari server
+    document.getElementById('userInfo').innerHTML = `
+        <b>Hari / Tanggal:</b> ${namaHari}, ${tanggalHariIni} WITA<br>
+        <b>Nama:</b> ${currentUserData.nama}<br>
+        <b>NUPTK:</b> ${currentUserData.nuptk}<br>
+        <b>Jabatan:</b> ${currentUserData.jabatan}<br>
+        <b>Status Hari Ini:</b> <span style="color: #6c757d;">Memeriksa status server...</span>
+    `;
+
+    // Ambil status langsung dari Server (Google Spreadsheet) agar konsisten di semua perangkat
+    let statusMasuk = "Belum";
+    let statusKeluar = "Belum";
+    let statusIzin = null;
+
+    try {
+        const payload = {
+            token: SECRET_TOKEN,
+            action: "cek_status",
+            username: currentUserData.username
+        };
+
+        const response = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
+        const res = await response.json();
+
+        if (res.status === "success") {
+            statusMasuk = res.statusMasuk;
+            statusKeluar = res.statusKeluar;
+            statusIzin = res.statusIzin;
+        }
+    } catch (e) {
+        console.error("Gagal sinkronisasi status dari server:", e);
+    }
 
     let infoStatusHTML = "";
-    
-    // Ambil referensi semua tombol menu utama
     const btnMasuk = document.querySelector("button[onclick*=\"bukaForm('Masuk')\"]");
     const btnKeluar = document.querySelector("button[onclick*=\"bukaForm('Keluar')\"]");
     const btnIzin = document.querySelector("button[onclick*=\"bukaForm('Izin')\"]");
 
     if (statusIzin) {
-        // Jika sudah izin/sakit, tampilkan status izin + Tombol Batal Izin
         infoStatusHTML = `<span style="color: #ffc107; font-weight: bold;">${statusIzin} (Izin Aktif)</span><br><button onclick="batalkanIzin()" style="margin-top:8px; padding:6px 12px; background-color:#dc3545; color:white; border:none; border-radius:6px; font-size:12px; cursor:pointer;"><i class="fa-solid fa-rotate-left"></i> Batalkan Izin/Sakit</button>`;
         
-        // Matikan tombol Masuk, Keluar, dan Izin/Sakit
         if (btnMasuk) { btnMasuk.disabled = true; btnMasuk.style.opacity = "0.5"; btnMasuk.style.cursor = "not-allowed"; }
         if (btnKeluar) { btnKeluar.disabled = true; btnKeluar.style.opacity = "0.5"; btnKeluar.style.cursor = "not-allowed"; }
         if (btnIzin) { btnIzin.disabled = true; btnIzin.style.opacity = "0.5"; btnIzin.style.cursor = "not-allowed"; }
@@ -142,7 +163,6 @@ function showDashboard(nama) {
         
         infoStatusHTML = `Masuk: <span style="color: ${textMasukColor}; font-weight: bold;">${statusMasuk}</span> | Keluar: <span style="color: ${textKeluarColor}; font-weight: bold;">${statusKeluar}</span>`;
         
-        // Aktifkan kembali semua tombol jika tidak sedang izin
         if (btnMasuk) { btnMasuk.disabled = false; btnMasuk.style.opacity = "1"; btnMasuk.style.cursor = "pointer"; }
         if (btnKeluar) { btnKeluar.disabled = false; btnKeluar.style.opacity = "1"; btnKeluar.style.cursor = "pointer"; }
         if (btnIzin) { btnIzin.disabled = false; btnIzin.style.opacity = "1"; btnIzin.style.cursor = "pointer"; }
@@ -156,7 +176,6 @@ function showDashboard(nama) {
         <b>Status Hari Ini:</b> <span id="textStatusAbsen">${infoStatusHTML}</span>
     `;
 }
-
 // Fungsi Baru untuk Membatalkan Izin / Sakit (Dengan Logging ke Server)
 function batalkanIzin() {
     if (confirm("Apakah Anda yakin ingin membatalkan permohonan Izin / Sakit ini? Tombol Absen Masuk dan Keluar akan diaktifkan kembali.")) {
