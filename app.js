@@ -1,6 +1,6 @@
 // === KONFIGURASI UTAMA ===
-const GAS_URL = "URL_GOOGLE_APPS_SCRIPT_ANDA"; // Ganti dengan URL Web App Apps Script Anda
-const SECRET_TOKEN = "AbsensiRahasia123!";
+const GAS_URL = "https://script.google.com/macros/s/AKfycbz7icYUkFrdgZO2kA82WsvoXOG2kisOUBBq7Txvq31k_tC-a7Dv3vOKc55KgbvaRpL9/exec"; // Ganti dengan URL Web App Apps Script Anda
+const SECRET_TOKEN = "ErangaT0ken_2026";
 
 const SCHOOL_LAT = -8.670458;  
 const SCHOOL_LNG = 115.212629; 
