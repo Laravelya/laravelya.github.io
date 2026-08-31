@@ -143,6 +143,15 @@ function updateClock() {
 setInterval(updateClock, 1000);
 
 function bukaForm(jenis) {
+    // Jika memilih Izin atau Sakit, abaikan validasi waktu (bebas hari dan jam)
+    if (jenis === 'Izin') {
+        modePilihan = "Izin";
+        document.getElementById('mainButtons').classList.add('hidden');
+        document.getElementById('izinArea').classList.remove('hidden');
+        return;
+    }
+
+    // Validasi Waktu KHUSUS untuk Absen Masuk dan Keluar (Senin-Jumat, 06.30 - 23.59 WITA)
     const now = new Date();
     const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
     const wita = new Date(utc + (3600000 * 8));
@@ -150,11 +159,11 @@ function bukaForm(jenis) {
     const menitTotal = (wita.getHours() * 60) + wita.getMinutes();
 
     if (hari === 0 || hari === 6) {
-        alert("Absensi hanya hari Senin - Jumat.");
+        alert("Absensi Masuk/Keluar hanya bisa dilakukan pada hari Senin - Jumat.");
         return;
     }
     if (menitTotal < (6 * 60 + 30) || menitTotal > (23 * 60 + 59)) {
-        alert("Absensi dibuka jam 06.30 - 23.59 WITA.");
+        alert("Absensi Masuk/Keluar hanya dibuka jam 06.30 - 23.59 WITA.");
         return;
     }
 
@@ -165,8 +174,6 @@ function bukaForm(jenis) {
         document.getElementById('menuTitle').innerText = "Foto Absen " + jenis;
         document.getElementById('cameraArea').classList.remove('hidden');
         startCamera();
-    } else {
-        document.getElementById('izinArea').classList.remove('hidden');
     }
 }
 
