@@ -129,14 +129,42 @@ function showDashboard(nama) {
     let statusIzin = localStorage.getItem(keyIzin);
 
     let infoStatusHTML = "";
+    
+    // Ambil elemen tombol Masuk dan Keluar berdasarkan onclick-nya
+    const btnMasuk = document.querySelector("button[onclick*=\"bukaForm('Masuk')\"]");
+    const btnKeluar = document.querySelector("button[onclick*=\"bukaForm('Keluar')\"]");
 
     if (statusIzin) {
-        infoStatusHTML = `<span style="color: #ffc107; font-weight: bold;">${statusIzin}</span>`;
+        // Jika sudah izin/sakit, tampilkan status izin dan matikan tombol Masuk & Keluar
+        infoStatusHTML = `<span style="color: #ffc107; font-weight: bold;">${statusIzin} (Izin Aktif)</span>`;
+        
+        if (btnMasuk) {
+            btnMasuk.disabled = true;
+            btnMasuk.style.opacity = "0.5";
+            btnMasuk.style.cursor = "not-allowed";
+        }
+        if (btnKeluar) {
+            btnKeluar.disabled = true;
+            btnKeluar.style.opacity = "0.5";
+            btnKeluar.style.cursor = "not-allowed";
+        }
     } else {
         let textMasukColor = statusMasuk === "Sudah" ? "#198754" : "#d9534f";
         let textKeluarColor = statusKeluar === "Sudah" ? "#198754" : "#d9534f";
         
         infoStatusHTML = `Masuk: <span style="color: ${textMasukColor}; font-weight: bold;">${statusMasuk}</span> | Keluar: <span style="color: ${textKeluarColor}; font-weight: bold;">${statusKeluar}</span>`;
+        
+        // Pastikan tombol aktif kembali jika tidak sedang izin
+        if (btnMasuk) {
+            btnMasuk.disabled = false;
+            btnMasuk.style.opacity = "1";
+            btnMasuk.style.cursor = "pointer";
+        }
+        if (btnKeluar) {
+            btnKeluar.disabled = false;
+            btnKeluar.style.opacity = "1";
+            btnKeluar.style.cursor = "pointer";
+        }
     }
 
     document.getElementById('userInfo').innerHTML = `
