@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi Absensi ERANGA</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #f8f9fa; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+        }
+        .container { 
+            width: 100%; 
+            max-width: 420px; 
+            background: #ffffff; 
+            padding: 35px 30px 25px 30px; 
+            border-radius: 16px; 
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06); 
+            box-sizing: border-box; 
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        /* Styling Header / Judul */
+        .login-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .app-brand {
+            font-size: 30px;
+            font-weight: 800;
+            color: #43ba92;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+        h2 { 
+            color: #2c3e50; 
+            margin: 0; 
+            font-size: 24px; 
+        }
+
+        .input-group { 
+            margin-bottom: 20px; 
+            text-align: left; 
+        }a
+        .input-group label { 
+            display: block; 
+            margin-bottom: 8px; 
+            color: #34495e; 
+            font-size: 14px; 
+            font-weight: 500; 
+        }
+        .input-field-wrapper { 
+            position: relative; 
+            display: flex; 
+            align-items: center; 
+        }
+        .input-field-wrapper i.fa-user, 
+        .input-field-wrapper i.fa-lock { 
+            position: absolute; 
+            left: 14px; 
+            color: #95a5a6; 
+        }
+        .input-field-wrapper input { 
+            width: 100%; 
+            padding: 12px 14px 12px 42px; 
+            border: 1px solid #dcdde1; 
+            border-radius: 8px; 
+            font-size: 14px; 
+            box-sizing: border-box; 
+            outline: none; 
+            transition: border-color 0.2s; 
+        }
+        .input-field-wrapper input:focus { 
+            border-color: #43ba92; 
+        }
+        
+        /* Tombol Toggle Password (Mata) */
+        #togglePassword { 
+            position: absolute; 
+            right: 14px; 
+            background: none; 
+            border: none; 
+            cursor: pointer; 
+            color: #95a5a6; 
+            width: auto; 
+            padding: 0; 
+            margin: 0; 
+        }
+        #togglePassword:hover { 
+            color: #2c3e50; 
+        }
+
+        /* Checkbox Ingat Saya */
+        .remember-me { 
+            display: flex; 
+            align-items: center; 
+            margin-bottom: 25px; 
+            font-size: 14px; 
+            color: #34495e; 
+        }
+        .remember-me input { 
+            margin-right: 8px; 
+            width: 16px; 
+            height: 16px; 
+            accent-color: #43ba92; 
+            cursor: pointer; 
+        }
+
+        /* Tombol Login Warna #43ba92 */
+        .btn-login { 
+            width: 100%; 
+            padding: 12px; 
+            background-color: #43ba92; 
+            color: white; 
+            border: none; 
+            border-radius: 8px; 
+            font-size: 16px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            transition: background-color 0.2s; 
+        }
+        .btn-login:hover { 
+            background-color: #3aa37f; 
+        }
+
+        #loginMsg { 
+            text-align: center; 
+            font-size: 13px; 
+            margin-top: 10px; 
+        }
+
+        /* Footer */
+        .footer-text {
+            text-align: center;
+            font-size: 12px;
+            color: #95a5a6;
+            margin-top: 30px;
+        }
+
+        /* Styling Dashboard & Menu Lainnya (Tetap Fungsional) */
+        #dashboardSection { text-align: center; }
+        .user-info { text-align: left; background: #eef2f5; padding: 12px; border-radius: 8px; font-size: 13px; margin-bottom: 15px; }
+        #clock { font-size: 24px; font-weight: bold; margin: 10px 0; color: #2c3e50; }
+        #video { width: 100%; border-radius: 8px; background: #000; transform: scaleX(-1); }
+        #canvas { display: none; }
+        .hidden { display: none; }
+        
+        .dashboard-btn { width: 100%; padding: 12px; margin: 8px 0; border: none; border-radius: 6px; font-size: 15px; font-weight: bold; color: #fff; cursor: pointer; }
+        .btn-green { background: #198754; }
+        .btn-red { background: #dc3545; }
+        .btn-yellow { background: #ffc107; color: #000; }
+        .btn-gray { background: #6c757d; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- FORM LOGIN -->
+    <div id="loginSection">
+        <div class="login-header">
+            <div class="app-brand">ERANGA</div>
+            <h2>Selamat Datang</h2>
+        </div>
+        
+        <div class="input-group">
+            <label for="username">Username</label>
+            <div class="input-field-wrapper">
+                <i class="fa-solid fa-user"></i>
+                <input type="text" id="username" placeholder="">
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label for="password">Password</label>
+            <div class="input-field-wrapper">
+                <i class="fa-solid fa-lock"></i>
+                <input type="password" id="password" placeholder="">
+                <button type="button" id="togglePassword"><i class="fa-solid fa-eye"></i></button>
+            </div>
+        </div>
+
+        <div class="remember-me">
+            <input type="checkbox" id="rememberMe">
+            <label for="rememberMe" style="margin-bottom:0; cursor:pointer;">Ingat Saya</label>
+        </div>
+
+        <button class="btn-login" onclick="login()">Login</button>
+        <p id="loginMsg" style="color:red;"></p>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="dashboardSection" class="hidden">
+        <h3 style="color: #2c3e50; margin-top:0;">Halo, <span id="displayUser"></span></h3>
+        <div id="userInfo" class="user-info"></div>
+        <div id="clock">00:00:00 WITA</div>
+
+        <div id="mainButtons">
+            <button class="dashboard-btn btn-green" onclick="bukaForm('Masuk')">📸 ABSEN MASUK</button>
+            <button class="dashboard-btn btn-red" onclick="bukaForm('Keluar')">📸 ABSEN KELUAR</button>
+            <button class="dashboard-btn btn-yellow" onclick="bukaForm('Izin')">📝 IZIN / SAKIT</button>
+            <button class="dashboard-btn btn-gray" onclick="logout()" style="margin-top:20px;">Logout</button>
+        </div>
+
+        <!-- FORM ABSEN MASUK/KELUAR -->
+        <div id="cameraArea" class="hidden">
+            <h4 id="menuTitle" style="color:#2c3e50;"></h4>
+            <video id="video" autoplay playsinline></video>
+            <canvas id="canvas"></canvas>
+            <button class="dashboard-btn btn-green" onclick="eksekusiAbsen()">KIRIM ABSEN</button>
+            <button class="dashboard-btn btn-gray" onclick="batal()">Batal</button>
+        </div>
+
+        <!-- FORM IZIN/SAKIT -->
+        <div id="izinArea" class="hidden">
+            <h4 style="color:#2c3e50;">Form Izin / Sakit</h4>
+            <select id="jenisIzin" style="width:100%; padding:10px; margin:8px 0; border-radius:6px; border:1px solid #ccc;">
+                <option value="Izin">Izin</option>
+                <option value="Sakit">Sakit</option>
+            </select>
+            <textarea id="keteranganIzin" rows="3" placeholder="Alasan..." style="width:100%; padding:10px; margin:8px 0; border-radius:6px; border:1px solid #ccc; box-sizing:border-box;"></textarea>
+            <button class="dashboard-btn btn-yellow" onclick="eksekusiIzin()">KIRIM PERMOHONAN</button>
+            <button class="dashboard-btn btn-gray" onclick="batal()">Batal</button>
+        </div>
+
+        <div id="status"></div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer-text">
+        &copy; 2026 ERANGA. All rights reserved.
+    </div>
+</div>
+
+<!-- Memuat file JavaScript terpisah (app.js) -->
+<script src="app.js"></script>
+</body>
+</html>
