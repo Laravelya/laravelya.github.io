@@ -156,7 +156,8 @@ function showDashboard(nama) {
         <b>Status Hari Ini:</b> <span id="textStatusAbsen">${infoStatusHTML}</span>
     `;
 }
-// Fungsi Baru untuk Membatalkan Izin / Sakit
+
+// Fungsi Baru untuk Membatalkan Izin / Sakit (Dengan Logging ke Server)
 function batalkanIzin() {
     if (confirm("Apakah Anda yakin ingin membatalkan permohonan Izin / Sakit ini? Tombol Absen Masuk dan Keluar akan diaktifkan kembali.")) {
         const now = new Date();
@@ -165,13 +166,34 @@ function batalkanIzin() {
         const tanggalHariIni = wita.toISOString().split('T')[0];
         
         const keyIzin = `status_izin_${currentUserData.username}_${tanggalHariIni}`;
-        
-        // Hapus status izin dari localStorage
-        localStorage.removeItem(keyIzin);
 
-        // Refresh tampilan dashboard
-        showDashboard(currentUserData.username);
-        alert("Permohonan Izin / Sakit berhasil dibatalkan. Anda sekarang dapat melakukan Absen Masuk.");
+        const payload = {
+            token: SECRET_TOKEN,
+            action: "batal_izin",
+            username: currentUserData.username,
+            namaLengkap: currentUserData.nama,
+            nuptk: currentUserData.nuptk,
+            jenisKelamin: currentUserData.jenisKelamin,
+            jabatan: currentUserData.jabatan
+        };
+
+        fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) })
+        .then(r => r.json())
+        .then(res => {
+            if(res.status === "success") {
+                // Hapus status izin dari localStorage
+                localStorage.removeItem(keyIzin);
+
+                // Refresh tampilan dashboard
+                showDashboard(currentUserData.username);
+                alert("Permohonan Izin / Sakit berhasil dibatalkan dan dicatat ke sistem.");
+            } else {
+                alert("Gagal mencatat pembatalan ke server: " + res.message);
+            }
+        })
+        .catch(() => {
+            alert("Gagal koneksi ke server.");
+        });
     }
 }
 
