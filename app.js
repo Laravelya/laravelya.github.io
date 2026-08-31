@@ -2,10 +2,6 @@
 const GAS_URL = "https://script.google.com/macros/s/AKfycbz7icYUkFrdgZO2kA82WsvoXOG2kisOUBBq7Txvq31k_tC-a7Dv3vOKc55KgbvaRpL9/exec"; // Ganti dengan URL Web App Apps Script Anda
 const SECRET_TOKEN = "ErangaT0ken_2026";
 
-const SCHOOL_LAT = -8.670458;  
-const SCHOOL_LNG = 115.212629; 
-const MAX_RADIUS = 50; // Meter
-
 const DAFTAR_BSSID_SEKOLAH = [
     "00:1a:2b:3c:4d:5e",
     "11:22:33:44:55:66"
@@ -20,7 +16,7 @@ function terimaDataWiFiFromAndroid(ssid, bssid) {
     bssidSiswa = bssid.replace(/"/g, "").trim().toLowerCase();
 }
 
-// --- PERSISTENT LOGIN (LocalStorage & Cookie) ---
+// --- PERSISTENT LOGIN ---
 function simpanSesi(userData) {
     localStorage.setItem("session_user", JSON.stringify(userData));
     document.cookie = "user_session=" + encodeURIComponent(JSON.stringify(userData)) + "; max-age=" + (365*24*60*60) + "; path=/; Secure; SameSite=Strict";
@@ -80,10 +76,7 @@ function login() {
         password: p
     };
 
-    fetch(GAS_URL, {
-        method: 'POST',
-        body: JSON.stringify(payload)
-    })
+    fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) })
     .then(r => r.json())
     .then(res => {
         if(res.status === "success") {
@@ -129,42 +122,19 @@ function showDashboard(nama) {
     let statusIzin = localStorage.getItem(keyIzin);
 
     let infoStatusHTML = "";
-    
-    // Ambil elemen tombol Masuk dan Keluar berdasarkan onclick-nya
     const btnMasuk = document.querySelector("button[onclick*=\"bukaForm('Masuk')\"]");
     const btnKeluar = document.querySelector("button[onclick*=\"bukaForm('Keluar')\"]");
 
     if (statusIzin) {
-        // Jika sudah izin/sakit, tampilkan status izin dan matikan tombol Masuk & Keluar
         infoStatusHTML = `<span style="color: #ffc107; font-weight: bold;">${statusIzin} (Izin Aktif)</span>`;
-        
-        if (btnMasuk) {
-            btnMasuk.disabled = true;
-            btnMasuk.style.opacity = "0.5";
-            btnMasuk.style.cursor = "not-allowed";
-        }
-        if (btnKeluar) {
-            btnKeluar.disabled = true;
-            btnKeluar.style.opacity = "0.5";
-            btnKeluar.style.cursor = "not-allowed";
-        }
+        if (btnMasuk) { btnMasuk.disabled = true; btnMasuk.style.opacity = "0.5"; }
+        if (btnKeluar) { btnKeluar.disabled = true; btnKeluar.style.opacity = "0.5"; }
     } else {
         let textMasukColor = statusMasuk === "Sudah" ? "#198754" : "#d9534f";
         let textKeluarColor = statusKeluar === "Sudah" ? "#198754" : "#d9534f";
-        
         infoStatusHTML = `Masuk: <span style="color: ${textMasukColor}; font-weight: bold;">${statusMasuk}</span> | Keluar: <span style="color: ${textKeluarColor}; font-weight: bold;">${statusKeluar}</span>`;
-        
-        // Pastikan tombol aktif kembali jika tidak sedang izin
-        if (btnMasuk) {
-            btnMasuk.disabled = false;
-            btnMasuk.style.opacity = "1";
-            btnMasuk.style.cursor = "pointer";
-        }
-        if (btnKeluar) {
-            btnKeluar.disabled = false;
-            btnKeluar.style.opacity = "1";
-            btnKeluar.style.cursor = "pointer";
-        }
+        if (btnMasuk) { btnMasuk.disabled = false; btnMasuk.style.opacity = "1"; }
+        if (btnKeluar) { btnKeluar.disabled = false; btnKeluar.style.opacity = "1"; }
     }
 
     document.getElementById('userInfo').innerHTML = `
@@ -190,21 +160,6 @@ function bukaForm(jenis) {
         modePilihan = "Izin";
         document.getElementById('mainButtons').classList.add('hidden');
         document.getElementById('izinArea').classList.remove('hidden');
-        return;
-    }
-
-    const now = new Date();
-    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-    const wita = new Date(utc + (3600000 * 8));
-    const hari = wita.getDay();
-    const menitTotal = (wita.getHours() * 60) + wita.getMinutes();
-
-    if (hari === 0 || hari === 6) {
-        alert("Absensi Masuk/Keluar hanya bisa dilakukan pada hari Senin - Jumat.");
-        return;
-    }
-    if (menitTotal < (6 * 60 + 30) || menitTotal > (23 * 60 + 59)) {
-        alert("Absensi Masuk/Keluar hanya dibuka jam 06.30 - 23.59 WITA.");
         return;
     }
 
@@ -246,7 +201,7 @@ function eksekusiAbsen() {
         return;
     }
 
-    document.getElementById('status').innerText = "Mengecek GPS...";
+    document.getElementById('status').innerText = "Mendapatkan lokasi GPS...";
     document.getElementById('status').style.color = "blue";
 
     if (navigator.geolocation) {
@@ -262,38 +217,17 @@ function eksekusiIzin() {
     let ket = document.getElementById('keteranganIzin').value.trim();
     if(!ket) { alert("Isi keterangan izin!"); return; }
 
-    document.getElementById('status').innerText = "Mengambil GPS...";
+    document.getElementById('status').innerText = "Mengirim izin...";
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition((pos) => kirim(pos, false), () => alert("Gagal mengambil GPS."));
     }
 }
 
-function hitungJarak(lat1, lon1, lat2, lon2) {
-    const R = 6371e3;
-    const p1 = lat1 * Math.PI/180, p2 = lat2 * Math.PI/180;
-    const dp = (lat2-lat1) * Math.PI/180, dl = (lon2-lon1) * Math.PI/180;
-    const a = Math.sin(dp/2) * Math.sin(dp/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) * Math.sin(dl/2);
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-}
-
 function kirim(pos, adaFoto) {
     const lat = pos.coords.latitude;
     const lng = pos.coords.longitude;
-    const akurasi = pos.coords.accuracy;
 
-    if (adaFoto) {
-        if (akurasi > 50) {
-            alert(`Sinyal GPS lemah (${Math.round(akurasi)}m). Silakan pindah ke area terbuka.`);
-            return;
-        }
-        const jarak = hitungJarak(lat, lng, SCHOOL_LAT, SCHOOL_LNG);
-        if (jarak > MAX_RADIUS) {
-            alert(`Di luar area sekolah! Jarak Anda: ${Math.round(jarak)}m dari lokasi.`);
-            return;
-        }
-    }
-
-    document.getElementById('status').innerText = "Mengunggah foto & menyimpan data...";
+    document.getElementById('status').innerText = "Mengunggah foto & memvalidasi data ke server...";
 
     let fotoBase64 = "";
     if (adaFoto) {
@@ -323,7 +257,7 @@ function kirim(pos, adaFoto) {
     .then(r => r.json())
     .then(res => {
         if(res.status === "success") {
-            alert("Absen Berhasil Dicatat!");
+            alert("Berhasil: " + res.message);
 
             const now = new Date();
             const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
@@ -341,11 +275,15 @@ function kirim(pos, adaFoto) {
                 localStorage.setItem(`status_izin_${currentUserData.username}_${tglHariIni}`, jenisIzinVal);
             }
 
-            showDashboard(currentUserData.nama);
+            showDashboard(currentUserData.username);
             batal();
         } else {
-            alert("Error: " + res.message);
+            alert("Ditolak Server: " + res.message);
+            document.getElementById('status').innerText = "";
         }
     })
-    .catch(() => alert("Gagal koneksi server."));
+    .catch(() => {
+        alert("Gagal koneksi ke server.");
+        document.getElementById('status').innerText = "";
+    });
 }
