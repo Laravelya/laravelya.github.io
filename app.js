@@ -122,23 +122,30 @@ function showDashboard(nama) {
     let statusIzin = localStorage.getItem(keyIzin);
 
     let infoStatusHTML = "";
+    
+    // Ambil referensi semua tombol menu utama
     const btnMasuk = document.querySelector("button[onclick*=\"bukaForm('Masuk')\"]");
     const btnKeluar = document.querySelector("button[onclick*=\"bukaForm('Keluar')\"]");
+    const btnIzin = document.querySelector("button[onclick*=\"bukaForm('Izin')\"]");
 
     if (statusIzin) {
         // Jika sudah izin/sakit, tampilkan status izin + Tombol Batal Izin
         infoStatusHTML = `<span style="color: #ffc107; font-weight: bold;">${statusIzin} (Izin Aktif)</span><br><button onclick="batalkanIzin()" style="margin-top:8px; padding:6px 12px; background-color:#dc3545; color:white; border:none; border-radius:6px; font-size:12px; cursor:pointer;"><i class="fa-solid fa-rotate-left"></i> Batalkan Izin/Sakit</button>`;
         
+        // Matikan tombol Masuk, Keluar, dan Izin/Sakit
         if (btnMasuk) { btnMasuk.disabled = true; btnMasuk.style.opacity = "0.5"; btnMasuk.style.cursor = "not-allowed"; }
         if (btnKeluar) { btnKeluar.disabled = true; btnKeluar.style.opacity = "0.5"; btnKeluar.style.cursor = "not-allowed"; }
+        if (btnIzin) { btnIzin.disabled = true; btnIzin.style.opacity = "0.5"; btnIzin.style.cursor = "not-allowed"; }
     } else {
         let textMasukColor = statusMasuk === "Sudah" ? "#198754" : "#d9534f";
         let textKeluarColor = statusKeluar === "Sudah" ? "#198754" : "#d9534f";
         
         infoStatusHTML = `Masuk: <span style="color: ${textMasukColor}; font-weight: bold;">${statusMasuk}</span> | Keluar: <span style="color: ${textKeluarColor}; font-weight: bold;">${statusKeluar}</span>`;
         
+        // Aktifkan kembali semua tombol jika tidak sedang izin
         if (btnMasuk) { btnMasuk.disabled = false; btnMasuk.style.opacity = "1"; btnMasuk.style.cursor = "pointer"; }
         if (btnKeluar) { btnKeluar.disabled = false; btnKeluar.style.opacity = "1"; btnKeluar.style.cursor = "pointer"; }
+        if (btnIzin) { btnIzin.disabled = false; btnIzin.style.opacity = "1"; btnIzin.style.cursor = "pointer"; }
     }
 
     document.getElementById('userInfo').innerHTML = `
@@ -149,7 +156,6 @@ function showDashboard(nama) {
         <b>Status Hari Ini:</b> <span id="textStatusAbsen">${infoStatusHTML}</span>
     `;
 }
-
 // Fungsi Baru untuk Membatalkan Izin / Sakit
 function batalkanIzin() {
     if (confirm("Apakah Anda yakin ingin membatalkan permohonan Izin / Sakit ini? Tombol Absen Masuk dan Keluar akan diaktifkan kembali.")) {
