@@ -7,7 +7,7 @@ const DAFTAR_BSSID_SEKOLAH = [
     "06:20:84:9a:42:1b",
     // IQRA_NETWORK
     "06:20:84:aa:42:1b,
-    //BSSID Router LAB
+    // IQRA_LAB_IT
     "74:f8:db:6a:a7:f0",
 ];
 
