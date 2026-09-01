@@ -2,19 +2,19 @@
 const GAS_URL = "https://script.google.com/macros/s/AKfycbz7icYUkFrdgZO2kA82WsvoXOG2kisOUBBq7Txvq31k_tC-a7Dv3vOKc55KgbvaRpL9/exec"; // Ganti dengan URL Web App Apps Script Anda
 const SECRET_TOKEN = "ErangaT0ken_2026";
 
-const DAFTAR_BSSID_SEKOLAH = [
+/*const DAFTAR_BSSID_SEKOLAH = [
     "00:1a:2b:3c:4d:5e",
     "11:22:33:44:55:66",
     "9e:f5:cf:a1:b2:5b",
-];
+];*/
 
-let bssidSiswa = "";
+let bssidPengguna = "";
 let streamRef = null;
 let modePilihan = "";
 let currentUserData = null;
 
 function terimaDataWiFiFromAndroid(ssid, bssid) {
-    bssidSiswa = bssid.replace(/"/g, "").trim().toLowerCase();
+    bssidPengguna = bssid.replace(/"/g, "").trim().toLowerCase();
 }
 
 // --- PERSISTENT LOGIN ---
@@ -268,10 +268,11 @@ function stopCamera() {
 }
 
 function eksekusiAbsen() {
-    if (!bssidSiswa || !DAFTAR_BSSID_SEKOLAH.includes(bssidSiswa)) {
-        alert(`Akses Ditolak!\nRouter WiFi tidak terdaftar sebagai milik sekolah.\n(MAC Detected: ${bssidSiswa || 'Tidak Terdeteksi'})`);
+    // Fitur ini masih bermasalah
+    /*if (!bssidPengguna || !DAFTAR_BSSID_SEKOLAH.includes(bssidPengguna)) {
+        alert(`Akses Ditolak!\nRouter WiFi tidak terdaftar sebagai milik sekolah.\n(MAC Detected: ${bssidPengguna || 'Tidak Terdeteksi'})`);
         return;
-    }
+    }*/
 
     document.getElementById('status').innerText = "Mendapatkan lokasi GPS...";
     document.getElementById('status').style.color = "blue";
