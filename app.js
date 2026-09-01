@@ -18,6 +18,10 @@ let faceDetectInterval = null;
 
 function terimaDataWiFiFromAndroid(ssid, bssid) {
     bssidPengguna = bssid.replace(/"/g, "").trim().toLowerCase();
+
+    // Untuk testing
+    console.log("SSID: " + ssid + " | BSSID: " + bssidPengguna);
+    alert("WiFi Terdeteksi!\nSSID: " + ssid + "\nBSSID: " + bssidPengguna);
 }
 
 // --- PERSISTENT LOGIN ---
