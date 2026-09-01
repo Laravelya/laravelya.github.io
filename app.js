@@ -297,6 +297,12 @@ function eksekusiIzin() {
 }
 
 function kirim(pos, adaFoto) {
+    if (!currentUserData || !currentUserData.username) {
+        alert("Sesi anda tidak valid. Silakan login ulang!");
+        logout();
+        return;
+    }
+
     const lat = pos.coords.latitude;
     const lng = pos.coords.longitude;
 
