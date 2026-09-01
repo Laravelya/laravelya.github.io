@@ -139,9 +139,11 @@ async function showDashboard(nama) {
         <b>Status Hari Ini:</b> <span style="color: #6c757d;">Memeriksa status server...</span>
     `;
 
-    // Ambil status langsung dari Server (Google Spreadsheet) agar konsisten di semua perangkat
+    // Ambil status dan jam absen langsung dari Server (Google Spreadsheet)
     let statusMasuk = "Belum";
+    let jamMasuk = "";
     let statusKeluar = "Belum";
+    let jamKeluar = "";
     let statusIzin = null;
 
     try {
@@ -156,7 +158,9 @@ async function showDashboard(nama) {
 
         if (res.status === "success") {
             statusMasuk = res.statusMasuk;
+            jamMasuk = res.jamMasuk || ""; // Ambil jam masuk dari server jika ada
             statusKeluar = res.statusKeluar;
+            jamKeluar = res.jamKeluar || ""; // Ambil jam keluar dari server jika ada
             statusIzin = res.statusIzin;
         }
     } catch (e) {
@@ -178,9 +182,12 @@ async function showDashboard(nama) {
         let textMasukColor = statusMasuk === "Sudah" ? "#198754" : "#d9534f";
         let textKeluarColor = statusKeluar === "Sudah" ? "#198754" : "#d9534f";
         
-        infoStatusHTML = `Masuk: <span style="color: ${textMasukColor}; font-weight: bold;">${statusMasuk}</span> | Keluar: <span style="color: ${textKeluarColor}; font-weight: bold;">${statusKeluar}</span>`;
+        // Tampilkan jam jika sudah absen
+        let labelMasuk = statusMasuk === "Sudah" ? `Sudah (${jamMasuk || 'Terekam'})` : "Belum";
+        let labelKeluar = statusKeluar === "Sudah" ? `Sudah (${jamKeluar || 'Terekam'})` : "Belum";
+
+        infoStatusHTML = `Masuk: <span style="color: ${textMasukColor}; font-weight: bold;">${labelMasuk}</span> | Keluar: <span style="color: ${textKeluarColor}; font-weight: bold;">${labelKeluar}</span>`;
         
-        // Logika Baru: Mematikan tombol jika status sudah "Sudah"
         if (btnMasuk) { 
             if (statusMasuk === "Sudah") {
                 btnMasuk.disabled = true; btnMasuk.style.opacity = "0.5"; btnMasuk.style.cursor = "not-allowed"; 
@@ -198,7 +205,6 @@ async function showDashboard(nama) {
         }
         
         if (btnIzin) { 
-            // Matikan tombol izin jika user sudah melakukan absen masuk atau absen keluar
             if (statusMasuk === "Sudah" || statusKeluar === "Sudah") {
                 btnIzin.disabled = true; btnIzin.style.opacity = "0.5"; btnIzin.style.cursor = "not-allowed"; 
             } else {
