@@ -305,7 +305,7 @@ function jalankanLivenessDetection(videoEl, statusEl, btnKirim) {
             // Wajah terdeteksi, cek apakah dia senyum (nilai happy > 0.7 artinya senyum lebar)
             if (detection.expressions.happy > 0.7) {
                 isLivenessPassed = true;
-                statusEl.innerText = "Liveness Sukses (Manusia)! Silakan Absen.";
+                statusEl.innerText = "Liveness Test Sukses! Silakan Lanjutkan Absen.";
                 statusEl.style.color = "green";
                 
                 // Tampilkan tombol Kirim Absen
