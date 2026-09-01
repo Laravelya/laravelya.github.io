@@ -169,9 +169,31 @@ async function showDashboard(nama) {
         
         infoStatusHTML = `Masuk: <span style="color: ${textMasukColor}; font-weight: bold;">${statusMasuk}</span> | Keluar: <span style="color: ${textKeluarColor}; font-weight: bold;">${statusKeluar}</span>`;
         
-        if (btnMasuk) { btnMasuk.disabled = false; btnMasuk.style.opacity = "1"; btnMasuk.style.cursor = "pointer"; }
-        if (btnKeluar) { btnKeluar.disabled = false; btnKeluar.style.opacity = "1"; btnKeluar.style.cursor = "pointer"; }
-        if (btnIzin) { btnIzin.disabled = false; btnIzin.style.opacity = "1"; btnIzin.style.cursor = "pointer"; }
+        // Logika Baru: Mematikan tombol jika status sudah "Sudah"
+        if (btnMasuk) { 
+            if (statusMasuk === "Sudah") {
+                btnMasuk.disabled = true; btnMasuk.style.opacity = "0.5"; btnMasuk.style.cursor = "not-allowed"; 
+            } else {
+                btnMasuk.disabled = false; btnMasuk.style.opacity = "1"; btnMasuk.style.cursor = "pointer"; 
+            }
+        }
+        
+        if (btnKeluar) { 
+            if (statusKeluar === "Sudah") {
+                btnKeluar.disabled = true; btnKeluar.style.opacity = "0.5"; btnKeluar.style.cursor = "not-allowed"; 
+            } else {
+                btnKeluar.disabled = false; btnKeluar.style.opacity = "1"; btnKeluar.style.cursor = "pointer"; 
+            }
+        }
+        
+        if (btnIzin) { 
+            // Matikan tombol izin jika user sudah melakukan absen masuk atau absen keluar
+            if (statusMasuk === "Sudah" || statusKeluar === "Sudah") {
+                btnIzin.disabled = true; btnIzin.style.opacity = "0.5"; btnIzin.style.cursor = "not-allowed"; 
+            } else {
+                btnIzin.disabled = false; btnIzin.style.opacity = "1"; btnIzin.style.cursor = "pointer"; 
+            }
+        }
     }
 
     document.getElementById('userInfo').innerHTML = `
