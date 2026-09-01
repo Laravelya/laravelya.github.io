@@ -251,6 +251,7 @@ function bukaForm(jenis) {
 }
 
 function batal() {
+    if (faceDetectInterval) clearInterval(faceDetectInterval); // Matikan AI jika batal
     stopCamera();
     document.getElementById('cameraArea').classList.add('hidden');
     document.getElementById('izinArea').classList.add('hidden');
@@ -260,12 +261,67 @@ function batal() {
 
 async function startCamera() {
     try {
+        isLivenessPassed = false;
+        // Pastikan HTML memiliki <button id="btnKirimAbsen"> dan <p id="livenessStatus"> sesuai panduan HTML sebelumnya
+        const btnKirim = document.getElementById('btnKirimAbsen');
+        if (btnKirim) btnKirim.classList.add('hidden'); 
+        
+        const statusEl = document.getElementById('livenessStatus');
+        if (statusEl) {
+            statusEl.innerText = "Kamera aktif. Posisikan wajah Anda...";
+            statusEl.style.color = "red";
+        }
+
         streamRef = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-        document.getElementById('video').srcObject = streamRef;
+        const videoEl = document.getElementById('video');
+        videoEl.srcObject = streamRef;
+
+        // Begitu video mulai berputar, jalankan deteksi AI
+        videoEl.onplay = () => {
+            if (statusEl && btnKirim) {
+                jalankanLivenessDetection(videoEl, statusEl, btnKirim);
+            }
+        };
     } catch (e) {
         alert("Gagal membuka kamera.");
         batal();
     }
+}
+
+function jalankanLivenessDetection(videoEl, statusEl, btnKirim) {
+    if (faceDetectInterval) clearInterval(faceDetectInterval);
+
+    // AI akan mengecek setiap 500 milidetik
+    faceDetectInterval = setInterval(async () => {
+        if (isLivenessPassed) {
+            clearInterval(faceDetectInterval);
+            return;
+        }
+
+        // AI Mendeteksi wajah dan ekspresinya
+        const detection = await faceapi.detectSingleFace(videoEl, new faceapi.TinyFaceDetectorOptions()).withFaceExpressions();
+        
+        if (detection) {
+            // Wajah terdeteksi, cek apakah dia senyum (nilai happy > 0.7 artinya senyum lebar)
+            if (detection.expressions.happy > 0.7) {
+                isLivenessPassed = true;
+                statusEl.innerText = "Liveness Sukses (Manusia)! Silakan Absen.";
+                statusEl.style.color = "green";
+                
+                // Tampilkan tombol Kirim Absen
+                btnKirim.classList.remove('hidden');
+                
+                // Matikan interval agar tidak berat
+                clearInterval(faceDetectInterval);
+            } else {
+                statusEl.innerText = "Wajah terdeteksi. Silakan SENYUM LEBAR untuk absen!";
+                statusEl.style.color = "#ff9800"; // Warna Orange
+            }
+        } else {
+            statusEl.innerText = "Wajah TIDAK terdeteksi. Posisikan wajah ke kamera.";
+            statusEl.style.color = "red";
+        }
+    }, 500); 
 }
 
 function stopCamera() {
