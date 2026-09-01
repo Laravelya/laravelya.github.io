@@ -2,11 +2,12 @@
 const GAS_URL = "https://script.google.com/macros/s/AKfycbz7icYUkFrdgZO2kA82WsvoXOG2kisOUBBq7Txvq31k_tC-a7Dv3vOKc55KgbvaRpL9/exec"; // Ganti dengan URL Web App Apps Script Anda
 const SECRET_TOKEN = "ErangaT0ken_2026";
 
-/*const DAFTAR_BSSID_SEKOLAH = [
-    "00:1a:2b:3c:4d:5e",
+const DAFTAR_BSSID_SEKOLAH = [
+    //ZTE_IQRA
+    "06:20:84:9a:42:1b",
     "11:22:33:44:55:66",
     "9e:f5:cf:a1:b2:5b",
-];*/
+];
 
 let bssidPengguna = "";
 let streamRef = null;
