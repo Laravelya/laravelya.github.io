@@ -3,8 +3,10 @@ const GAS_URL = "https://script.google.com/macros/s/AKfycbz7icYUkFrdgZO2kA82Wsvo
 const SECRET_TOKEN = "ErangaT0ken_2026";
 
 const DAFTAR_BSSID_SEKOLAH = [
-    //BSSID Router Kantor
+    // ZTE_IQRA
     "06:20:84:9a:42:1b",
+    // IQRA_NETWORK
+    "06:20:84:aa:42:1b,
     //BSSID Router LAB
     "74:f8:db:6a:a7:f0",
 ];
