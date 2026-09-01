@@ -3,10 +3,10 @@ const GAS_URL = "https://script.google.com/macros/s/AKfycbz7icYUkFrdgZO2kA82Wsvo
 const SECRET_TOKEN = "ErangaT0ken_2026";
 
 const DAFTAR_BSSID_SEKOLAH = [
-    //ZTE_IQRA
+    //BSSID Router Kantor
     "06:20:84:9a:42:1b",
-    "11:22:33:44:55:66",
-    "9e:f5:cf:a1:b2:5b",
+    //BSSID Router LAB
+    "74:f8:db:6a:a7:f0",
 ];
 
 let bssidPengguna = "";
@@ -362,10 +362,10 @@ async function loadFaceAPIModels() {
 
 function eksekusiAbsen() {
     // Fitur ini masih bermasalah
-    /*if (!bssidPengguna || !DAFTAR_BSSID_SEKOLAH.includes(bssidPengguna)) {
+    if (!bssidPengguna || !DAFTAR_BSSID_SEKOLAH.includes(bssidPengguna)) {
         alert(`Akses Ditolak!\nRouter WiFi tidak terdaftar sebagai milik sekolah.\n(MAC Detected: ${bssidPengguna || 'Tidak Terdeteksi'})`);
         return;
-    }*/
+    }
 
     document.getElementById('status').innerText = "Mendapatkan lokasi GPS...";
     document.getElementById('status').style.color = "blue";
