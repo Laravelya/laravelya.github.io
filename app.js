@@ -1,4 +1,3 @@
-// === KONFIGURASI UTAMA ===
 const GAS_URL = "https://script.google.com/macros/s/AKfycbz7icYUkFrdgZO2kA82WsvoXOG2kisOUBBq7Txvq31k_tC-a7Dv3vOKc55KgbvaRpL9/exec"; // Ganti dengan URL Web App Apps Script Anda
 const SECRET_TOKEN = "ErangaT0ken_2026";
 
@@ -19,11 +18,16 @@ let isLivenessPassed = false;
 let faceDetectInterval = null;
 
 function terimaDataWiFiFromAndroid(ssid, bssid) {
+    let oldBssid = bssidPengguna;
     bssidPengguna = bssid.replace(/"/g, "").trim().toLowerCase();
 
-    // Untuk testing
-    console.log("SSID: " + ssid + " | BSSID: " + bssidPengguna);
-    alert("WiFi Terdeteksi!\nSSID: " + ssid + "\nBSSID: " + bssidPengguna);
+    // Deteksi perubahan BSSID secara real-time jika pengguna berpindah jaringan WiFi
+    if (oldBssid && oldBssid !== bssidPengguna) {
+        const cameraArea = document.getElementById('cameraArea');
+        if (cameraArea && !cameraArea.classList.contains('hidden')) {
+            alert(`Peringatan: Jaringan WiFi Anda berubah!\n(Terdeteksi: ${bssidPengguna})\nPastikan tetap terhubung ke WiFi resmi sekolah.`);
+        }
+    }
 }
 
 // --- PERSISTENT LOGIN ---
@@ -262,6 +266,11 @@ function updateClock() {
 setInterval(updateClock, 1000);
 
 function bukaForm(jenis) {
+    // Meminta pembaruan BSSID terbaru dari Android Bridge setiap kali menu form dibuka
+    if (window.AndroidBridge && typeof window.AndroidBridge.requestBssidUpdate === 'function') {
+        window.AndroidBridge.requestBssidUpdate();
+    }
+
     if (jenis === 'Izin') {
         modePilihan = "Izin";
         document.getElementById('mainButtons').classList.add('hidden');
@@ -367,7 +376,7 @@ async function loadFaceAPIModels() {
 }
 
 function eksekusiAbsen() {
-    // Fitur ini masih bermasalah
+    // Validasi BSSID WiFi Sekolah saat tombol kirim absen ditekan
     if (!bssidPengguna || !DAFTAR_BSSID_SEKOLAH.includes(bssidPengguna)) {
         alert(`Akses Ditolak!\nRouter WiFi tidak terdaftar sebagai milik sekolah.\n(MAC Detected: ${bssidPengguna || 'Tidak Terdeteksi'})`);
         return;
