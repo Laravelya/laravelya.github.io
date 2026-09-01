@@ -230,11 +230,28 @@
         </div>
 
         <!-- FORM ABSEN MASUK/KELUAR -->
+        <!--
         <div id="cameraArea" class="hidden">
             <h4 id="menuTitle" style="color:#2c3e50;"></h4>
             <video id="video" autoplay playsinline></video>
             <canvas id="canvas"></canvas>
             <button class="dashboard-btn btn-green" onclick="eksekusiAbsen()">KIRIM ABSEN</button>
+            <button class="dashboard-btn btn-gray" onclick="batal()">Batal</button>
+        </div>
+        -->
+
+        <!-- FORM ABSEN MASUK/KELUAR -->
+        
+        <div id="cameraArea" class="hidden">
+            <h4 id="menuTitle" style="color:#2c3e50;"></h4>
+            <video id="video" autoplay playsinline></video>
+            <canvas id="canvas"></canvas>
+            
+            <!-- Tambahan Status Liveness -->
+            <p id="livenessStatus" style="font-weight: bold; margin-bottom: 10px;"></p>
+            
+            <!-- Tombol Kirim kita sembunyikan awalnya, dan id-nya kita beri nama btnKirimAbsen -->
+            <button id="btnKirimAbsen" class="dashboard-btn btn-green hidden" onclick="eksekusiAbsen()">KIRIM ABSEN</button>
             <button class="dashboard-btn btn-gray" onclick="batal()">Batal</button>
         </div>
 
