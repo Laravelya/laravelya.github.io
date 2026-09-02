@@ -17,6 +17,27 @@ let currentUserData = null;
 let isLivenessPassed = false;
 let faceDetectInterval = null;
 
+// --- PENAMBAHAN: FUNGSI HELPER VALIDASI BSSID (MENDUKUNG 2.4 GHz & 5 GHz) ---
+function isBssidValid() {
+    if (!bssidPengguna) return false;
+
+    // Bersihkan format (hapus kutip, ubah '-' jadi ':', lalu lowercase)
+    const cleanedUserBssid = bssidPengguna.replace(/"/g, "").replace(/-/g, ":").trim().toLowerCase();
+
+    // Abaikan jika BSSID bernilai dummy / kosong
+    if (cleanedUserBssid === "02:00:00:00:00:00" || cleanedUserBssid === "<unknown bssid>" || cleanedUserBssid === "") {
+        return false;
+    }
+
+    // Periksa apakah BSSID pengguna ada di daftar sekolah (presisi penuh ATAU 5 oktet pertama/prefix)
+    return DAFTAR_BSSID_SEKOLAH.some(bssid => {
+        const cleanedSchoolBssid = bssid.replace(/"/g, "").replace(/-/g, ":").trim().toLowerCase();
+        const schoolPrefix = cleanedSchoolBssid.substring(0, 14); // 5 oktet pertama
+        
+        return cleanedUserBssid === cleanedSchoolBssid || cleanedUserBssid.startsWith(schoolPrefix);
+    });
+}
+
 function terimaDataWiFiFromAndroid(ssid, bssid) {
     if (!bssid) return;
 
@@ -288,6 +309,14 @@ function bukaForm(jenis) {
         window.AndroidBridge.requestBssidUpdate();
     }
 
+    // --- PENAMBAHAN: CEK BSSID SEBELUM MEMBUKA FORM ABSEN MASUK / KELUAR ---
+    if (jenis === 'Masuk' || jenis === 'Keluar') {
+        if (!isBssidValid()) {
+            alert(`Akses Ditolak!\nAnda harus terhubung ke WiFi resmi sekolah untuk melakukan Absen ${jenis}.\n\n(BSSID Terdeteksi: ${bssidPengguna || 'Tidak Terdeteksi'})`);
+            return;
+        }
+    }
+
     if (jenis === 'Izin') {
         modePilihan = "Izin";
         document.getElementById('mainButtons').classList.add('hidden');
@@ -393,9 +422,10 @@ async function loadFaceAPIModels() {
 }
 
 function eksekusiAbsen() {
-    // Validasi BSSID WiFi Sekolah saat tombol kirim absen ditekan
-    if (!bssidPengguna || !DAFTAR_BSSID_SEKOLAH.includes(bssidPengguna)) {
-        alert(`Akses Ditolak!\nRouter WiFi tidak terdaftar sebagai milik sekolah.\n(MAC Detected: ${bssidPengguna || 'Tidak Terdeteksi'})`);
+    // --- PENAMBAHAN: VALIDASI BSSID MENGGUNAKAN FUNGSI HELPER BARU ---
+    if (!isBssidValid()) {
+        alert(`Akses Ditolak!\nRouter WiFi tidak terdaftar sebagai milik sekolah atau koneksi terputus.\n(MAC Detected: ${bssidPengguna || 'Tidak Terdeteksi'})`);
+        batal();
         return;
     }
 
