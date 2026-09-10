@@ -174,52 +174,18 @@ function logout() {
   location.reload();
 }
 
-// DASHBOARD
+// DASHBOARD (OPTIMISTIC UI & BACKGROUND SYNC)
 function getHariIndonesia(date) {
   const hariArray = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
   return hariArray[date.getDay()];
 }
 
-async function showDashboard(nama) {
-  document.getElementById('loginSection').classList.add('hidden');
-  document.getElementById('dashboardSection').classList.remove('hidden');
-  document.getElementById('displayUser').innerText = nama;
-
-  const now = new Date();
-  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-  const wita = new Date(utc + (3600000 * 8));
-  const namaHari = getHariIndonesia(wita);
-  const tanggalHariIni = wita.toISOString().split('T')[0];
-
-  const userInfoEl = document.getElementById('userInfo');
-  userInfoEl.innerHTML = `
-    <b>Hari / Tanggal:</b> ${namaHari}, ${tanggalHariIni} WITA<br>
-    <b>Nama:</b> ${currentUserData.nama}<br>
-    <b>NUPTK:</b> ${currentUserData.nuptk}<br>
-    <b>Jabatan:</b> ${currentUserData.jabatan}<br>
-    <b>Status Hari Ini:</b> <span id="textStatusAbsen" style="color: #6c757d;">Memeriksa status server...</span>
-  `;
-
-  let statusMasuk = "Belum", jamMasuk = "";
-  let statusKeluar = "Belum", jamKeluar = "";
-  let statusIzin = null;
-
-  try {
-    const response = await fetch(GAS_URL, {
-      method: 'POST',
-      body: JSON.stringify({ token: SECRET_TOKEN, action: "cek_status", username: currentUserData.username })
-    });
-    const res = await response.json();
-    if (res.status === "success") {
-      statusMasuk = res.statusMasuk;
-      jamMasuk = res.jamMasuk || "";
-      statusKeluar = res.statusKeluar;
-      jamKeluar = res.jamKeluar || "";
-      statusIzin = res.statusIzin;
-    }
-  } catch (e) {
-    console.error("Gagal sinkronisasi status dari server:", e);
-  }
+function updateUIStatus(res) {
+  const statusMasuk = res.statusMasuk || "Belum";
+  const jamMasuk = res.jamMasuk || "";
+  const statusKeluar = res.statusKeluar || "Belum";
+  const jamKeluar = res.jamKeluar || "";
+  const statusIzin = res.statusIzin || null;
 
   let infoStatusHTML = "";
   const btnMasuk = document.querySelector("button[onclick*=\"bukaForm('Masuk')\"]");
@@ -260,6 +226,48 @@ async function showDashboard(nama) {
 
   const statusSpan = document.getElementById('textStatusAbsen');
   if (statusSpan) statusSpan.innerHTML = infoStatusHTML;
+}
+
+function showDashboard(nama) {
+  // 1. Render UI secara instan (0 ms latency)
+  document.getElementById('loginSection').classList.add('hidden');
+  document.getElementById('dashboardSection').classList.remove('hidden');
+  document.getElementById('displayUser').innerText = nama;
+
+  const now = new Date();
+  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+  const wita = new Date(utc + (3600000 * 8));
+  const namaHari = getHariIndonesia(wita);
+  const tanggalHariIni = wita.toISOString().split('T')[0];
+
+  const userInfoEl = document.getElementById('userInfo');
+  userInfoEl.innerHTML = `
+    <b>Hari / Tanggal:</b> ${namaHari}, ${tanggalHariIni} WITA<br>
+    <b>Nama:</b> ${currentUserData.nama}<br>
+    <b>NUPTK:</b> ${currentUserData.nuptk}<br>
+    <b>Jabatan:</b> ${currentUserData.jabatan}<br>
+    <b>Status Hari Ini:</b> <span id="textStatusAbsen" style="color: #6c757d;"><i class="fa-solid fa-spinner fa-spin"></i> Menyinkronkan...</span>
+  `;
+
+  // 2. Tarik data status di latar belakang (Background Fetch)
+  fetch(GAS_URL, {
+    method: 'POST',
+    body: JSON.stringify({ token: SECRET_TOKEN, action: "cek_status", username: currentUserData.username })
+  })
+  .then(r => r.json())
+  .then(res => {
+    if (res.status === "success") {
+      updateUIStatus(res);
+    } else {
+      const statusSpan = document.getElementById('textStatusAbsen');
+      if (statusSpan) statusSpan.innerHTML = `<span style="color:#d9534f;">Gagal memuat status</span>`;
+    }
+  })
+  .catch(e => {
+    console.error("Gagal sinkronisasi status dari server:", e);
+    const statusSpan = document.getElementById('textStatusAbsen');
+    if (statusSpan) statusSpan.innerHTML = `<span style="color:#6c757d;">Gagal terhubung ke server</span>`;
+  });
 }
 
 async function batalkanIzin() {
