@@ -231,6 +231,8 @@ async function login() {
     });
     const res = await response.json();
 
+    hideLoading();
+
     if (res.status === "success") {
       currentUserData = res.user;
       simpanSesi(currentUserData);
@@ -245,6 +247,7 @@ async function login() {
       });
     }
   } catch (e) {
+    hideLoading();
     document.getElementById('loginMsg').innerText = "Gagal terhubung ke server.";
     Swal.fire({
       icon: 'error',
@@ -384,6 +387,9 @@ async function batalkanIzin() {
       body: JSON.stringify({ token: SECRET_TOKEN, action: "batal_izin", username: currentUserData.username })
     });
     const res = await r.json();
+
+    hideLoading();
+
     if (res.status === "success") {
       await Swal.fire({
         icon: 'success',
@@ -401,6 +407,7 @@ async function batalkanIzin() {
       });
     }
   } catch (e) {
+    hideLoading();
     Swal.fire({
       icon: 'error',
       title: 'Koneksi Terputus',
@@ -582,6 +589,7 @@ function eksekusiAbsen() {
   isSubmitting = true;
   setSubmitButtonState(true);
 
+  showLoading("Mendapatkan lokasi GPS...");
   document.getElementById('status').innerText = "Mendapatkan lokasi GPS...";
   document.getElementById('status').style.color = "blue";
 
@@ -589,6 +597,7 @@ function eksekusiAbsen() {
     navigator.geolocation.getCurrentPosition(
       (pos) => kirim(pos, true),
       (err) => {
+        hideLoading();
         Swal.fire({
           icon: 'warning',
           title: 'GPS Gagal',
@@ -600,6 +609,7 @@ function eksekusiAbsen() {
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
   } else {
+    hideLoading();
     Swal.fire({
       icon: 'error',
       title: 'Perangkat Tidak Mendukung',
@@ -626,12 +636,15 @@ function eksekusiIzin() {
 
   isSubmitting = true;
   setSubmitButtonState(true, true);
+
+  showLoading("Mendapatkan lokasi GPS...");
   document.getElementById('status').innerText = "Mengirim izin...";
 
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
       (pos) => kirim(pos, false),
       () => {
+        hideLoading();
         Swal.fire({
           icon: 'warning',
           title: 'GPS Gagal',
@@ -642,6 +655,7 @@ function eksekusiIzin() {
       }
     );
   } else {
+    hideLoading();
     resetSubmitState();
   }
 }
@@ -664,6 +678,7 @@ function resetSubmitState() {
 
 async function kirim(pos, adaFoto) {
   if (!currentUserData || !currentUserData.username) {
+    hideLoading();
     Swal.fire({
       icon: 'error',
       title: 'Sesi Berakhir',
@@ -708,6 +723,9 @@ async function kirim(pos, adaFoto) {
     const response = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
     const res = await response.json();
 
+    // Sembunyikan overlay SEBELUM menampilkan modal SweetAlert2
+    hideLoading();
+
     if (res.status === "success") {
       await Swal.fire({
         icon: 'success',
@@ -726,6 +744,7 @@ async function kirim(pos, adaFoto) {
       });
     }
   } catch (e) {
+    hideLoading();
     Swal.fire({
       icon: 'error',
       title: 'Gagal Koneksi',
