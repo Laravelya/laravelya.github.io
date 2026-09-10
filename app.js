@@ -1,5 +1,5 @@
 // CONFIG
-const GAS_URL = "https://script.google.com/macros/s/AKfycbz7icYUkFrdgZO2kA82WsvoXOG2kisOUBBq7Txvq31k_tC-a7Dv3vOKc55KgbvaRpL9/exec";
+const GAS_URL = "https://script.google.com/macros/s/AKfycbx1sZUtiB_B0jdDoTZuU1wjNJO74yFGao-zf7g_RLGRfJs0H5Jjfb2OHG5tHFQBb_Ef/exec";
 const SECRET_TOKEN = "ErangaT0ken_2026";
 const DAFTAR_BSSID_SEKOLAH = [
   "06:20:84:9a:42:1b",
