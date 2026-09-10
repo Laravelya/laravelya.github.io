@@ -31,7 +31,7 @@
             justify-content: space-between;
         }
         
-        /* Styling Header / Judul */
+        /* Header / Logo */
         .login-header {
             text-align: center;
             margin-bottom: 25px;
@@ -50,6 +50,7 @@
             font-size: 24px; 
         }
 
+        /* Form Input */
         .input-group { 
             margin-bottom: 20px; 
             text-align: left; 
@@ -86,7 +87,7 @@
             border-color: #43ba92; 
         }
         
-        /* Tombol Toggle Password (Mata) */
+        /* Toggle Password Button */
         #togglePassword { 
             position: absolute; 
             right: 14px; 
@@ -102,7 +103,6 @@
             color: #2c3e50; 
         }
 
-        /* Checkbox Ingat Saya */
         .remember-me { 
             display: flex; 
             align-items: center; 
@@ -118,7 +118,6 @@
             cursor: pointer; 
         }
 
-        /* Tombol Login Warna #43ba92 */
         .btn-login { 
             width: 100%; 
             padding: 12px; 
@@ -141,7 +140,6 @@
             margin-top: 10px; 
         }
 
-        /* Footer */
         .footer-text {
             text-align: center;
             font-size: 12px;
@@ -149,10 +147,9 @@
             margin-top: 25px;
         }
 
-        /* Styling Dashboard & Menu Lainnya */
+        /* Dashboard */
         #dashboardSection { text-align: center; }
         
-        /* Kotak Profil yang Diperbarui (Lebih Profesional & Legible) */
         .user-info { 
             text-align: left; 
             background: #f1f3f5; 
@@ -170,15 +167,56 @@
         }
 
         #clock { font-size: 24px; font-weight: bold; margin: 10px 0; color: #2c3e50; }
-        #video { width: 100%; border-radius: 8px; background: #000; transform: scaleX(-1); }
-        #canvas { display: none; }
-        .hidden { display: none; }
         
-        .dashboard-btn { width: 100%; padding: 12px; margin: 8px 0; border: none; border-radius: 6px; font-size: 15px; font-weight: bold; color: #fff; cursor: pointer; }
+        /* Kamera & Face Overlay */
+        .camera-container {
+            position: relative;
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #000;
+            margin-bottom: 12px;
+        }
+        #video { 
+            width: 100%; 
+            display: block;
+            transform: scaleX(-1); 
+        }
+        .face-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 180px;
+            height: 230px;
+            border: 2px dashed rgba(67, 186, 146, 0.8);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        #canvas { display: none; }
+        .hidden { display: none !important; }
+        
+        /* Status Badge Liveness */
+        .liveness-badge {
+            font-size: 13px;
+            font-weight: 600;
+            padding: 8px 12px;
+            border-radius: 6px;
+            background: #e9ecef;
+            margin-bottom: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .dashboard-btn { width: 100%; padding: 12px; margin: 8px 0; border: none; border-radius: 8px; font-size: 15px; font-weight: bold; color: #fff; cursor: pointer; transition: opacity 0.2s; }
         .btn-green { background: #198754; }
+        .btn-green:hover { background: #157347; }
         .btn-red { background: #dc3545; }
+        .btn-red:hover { background: #bb2d3b; }
         .btn-yellow { background: #ffc107; color: #000; }
+        .btn-yellow:hover { background: #ffca2c; }
         .btn-gray { background: #6c757d; }
+        .btn-gray:hover { background: #5c636a; }
     </style>
 </head>
 <body>
@@ -195,7 +233,7 @@
             <label for="username">Username</label>
             <div class="input-field-wrapper">
                 <i class="fa-solid fa-user"></i>
-                <input type="text" id="username" placeholder="">
+                <input type="text" id="username" placeholder="Masukkan username" autocomplete="username">
             </div>
         </div>
 
@@ -203,7 +241,7 @@
             <label for="password">Password</label>
             <div class="input-field-wrapper">
                 <i class="fa-solid fa-lock"></i>
-                <input type="password" id="password" placeholder="">
+                <input type="password" id="password" placeholder="Masukkan password" autocomplete="current-password" onkeypress="if(event.key === 'Enter') login()">
                 <button type="button" id="togglePassword"><i class="fa-solid fa-eye"></i></button>
             </div>
         </div>
@@ -225,33 +263,23 @@
 
         <div id="mainButtons">
             <button class="dashboard-btn btn-green" onclick="bukaForm('Masuk')"><i class="fa-solid fa-right-to-bracket"></i> ABSEN MASUK</button>
-            <button class="dashboard-btn btn-red" onclick="bukaForm('Keluar')"><i class="fa-solid fa-right-from-bracket"></i> ABSEN KELUAR</button>
+            <button class="dashboard-btn btn-red hidden" onclick="bukaForm('Keluar')"><i class="fa-solid fa-right-from-bracket"></i> ABSEN KELUAR</button>
             <button class="dashboard-btn btn-yellow" onclick="bukaForm('Izin')"><i class="fa-solid fa-file-pen"></i> IZIN / SAKIT</button>
-            <button class="dashboard-btn btn-gray" onclick="logout()" style="margin-top:20px;"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+            <button class="dashboard-btn btn-gray" onclick="logout()" style="margin-top:20px;"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</button>
         </div>
 
-        <!-- FORM ABSEN MASUK/KELUAR -->
-        <!--
+        <!-- FORM ABSEN KAMERA (LIVENESS) -->
         <div id="cameraArea" class="hidden">
-            <h4 id="menuTitle" style="color:#2c3e50;"></h4>
-            <video id="video" autoplay playsinline></video>
-            <canvas id="canvas"></canvas>
-            <button class="dashboard-btn btn-green" onclick="eksekusiAbsen()">KIRIM ABSEN</button>
-            <button class="dashboard-btn btn-gray" onclick="batal()">Batal</button>
-        </div>
-        -->
-
-        <!-- FORM ABSEN MASUK/KELUAR -->
-        
-        <div id="cameraArea" class="hidden">
-            <h4 id="menuTitle" style="color:#2c3e50;"></h4>
-            <video id="video" autoplay playsinline></video>
-            <canvas id="canvas"></canvas>
+            <h4 id="menuTitle" style="color:#2c3e50; margin-bottom:10px;"></h4>
             
-            <!-- Tambahan Status Liveness -->
-            <p id="livenessStatus" style="font-weight: bold; margin-bottom: 10px;"></p>
+            <div class="camera-container">
+                <video id="video" autoplay playsinline></video>
+                <div class="face-overlay"></div>
+            </div>
             
-            <!-- Tombol Kirim kita sembunyikan awalnya, dan id-nya kita beri nama btnKirimAbsen -->
+            <canvas id="canvas"></canvas>
+            <p id="livenessStatus" class="liveness-badge">Kamera aktif. Posisikan wajah Anda...</p>
+            
             <button id="btnKirimAbsen" class="dashboard-btn btn-green hidden" onclick="eksekusiAbsen()">KIRIM ABSEN</button>
             <button class="dashboard-btn btn-gray" onclick="batal()">Batal</button>
         </div>
@@ -259,16 +287,28 @@
         <!-- FORM IZIN/SAKIT -->
         <div id="izinArea" class="hidden">
             <h4 style="color:#2c3e50;">Form Izin / Sakit</h4>
-            <select id="jenisIzin" style="width:100%; padding:10px; margin:8px 0; border-radius:6px; border:1px solid #ccc;">
+            <select id="jenisIzin" style="width:100%; padding:10px; margin:8px 0; border-radius:8px; border:1px solid #ccc; font-size:14px;">
                 <option value="Izin">Izin</option>
                 <option value="Sakit">Sakit</option>
             </select>
-            <textarea id="keteranganIzin" rows="3" placeholder="Alasan..." style="width:100%; padding:10px; margin:8px 0; border-radius:6px; border:1px solid #ccc; box-sizing:border-box;"></textarea>
+            <textarea id="keteranganIzin" rows="3" placeholder="Tuliskan alasan izin/sakit..." style="width:100%; padding:10px; margin:8px 0; border-radius:8px; border:1px solid #ccc; box-sizing:border-box; font-size:14px;"></textarea>
             <button class="dashboard-btn btn-yellow" onclick="eksekusiIzin()">KIRIM PERMOHONAN</button>
             <button class="dashboard-btn btn-gray" onclick="batal()">Batal</button>
         </div>
 
-        <div id="status"></div>
+        <div id="status" style="margin-top:10px; font-weight:600;"></div>
+    </div>
+
+    <!-- TAMPILAN OFFLINE (Bila Tidak Ada Internet) -->
+    <div id="offlineSection" class="hidden" style="text-align: center; padding: 20px 0;">
+        <i class="fa-solid fa-wifi" style="font-size: 50px; color: #dc3545; margin-bottom: 15px;"></i>
+        <h3 style="color: #2c3e50; margin-bottom: 8px;">Koneksi Terputus</h3>
+        <p style="color: #6c757d; font-size: 14px; margin-bottom: 20px;">
+            Aplikasi memerlukan koneksi internet untuk memproses data absensi.
+        </p>
+        <button class="btn-login" onclick="location.reload()">
+            <i class="fa-solid fa-rotate-right"></i> Coba Lagi
+        </button>
     </div>
 
     <!-- Footer -->
@@ -276,7 +316,17 @@
         &copy; 2026 ERANGA. All rights reserved.
     </div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js')
+                .then(() => console.log('Service Worker Terpasang!'))
+                .catch(err => console.error('SW Gagal:', err));
+        });
+    }
+</script>
 <script src="app.js"></script>
 </body>
 </html>
