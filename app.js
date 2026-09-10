@@ -17,6 +17,77 @@ let isDetectingFace = false;
 let modelsLoaded = false;
 let isSubmitting = false;
 
+// HELPER LOADING OVERLAY BLUR
+function showLoading(pesan = "Memproses data...") {
+  const overlay = document.getElementById('loadingOverlay');
+  const textEl = document.getElementById('loadingText');
+  if (textEl) textEl.innerText = pesan;
+  if (overlay) overlay.classList.remove('hidden');
+}
+
+function hideLoading() {
+  const overlay = document.getElementById('loadingOverlay');
+  if (overlay) overlay.classList.add('hidden');
+}
+
+// HELPER LOCAL CACHE STATUS
+function simpanStatusLokal(data) {
+  if (!currentUserData) return;
+  const now = new Date();
+  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+  const wita = new Date(utc + (3600000 * 8));
+  const tanggalHariIni = wita.toISOString().split('T')[0];
+
+  const payloadCache = {
+    tanggal: tanggalHariIni,
+    statusData: data
+  };
+  localStorage.setItem("cache_status_" + currentUserData.username, JSON.stringify(payloadCache));
+}
+
+function ambilStatusLokal() {
+  if (!currentUserData) return null;
+  const now = new Date();
+  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+  const wita = new Date(utc + (3600000 * 8));
+  const tanggalHariIni = wita.toISOString().split('T')[0];
+
+  const raw = localStorage.getItem("cache_status_" + currentUserData.username);
+  if (!raw) return null;
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed.tanggal === tanggalHariIni) {
+      return parsed.statusData;
+    }
+  } catch (e) {
+    return null;
+  }
+  return null;
+}
+
+// HELPER FETCH WITH AUTO-RETRY
+async function fetchCekStatusWithRetry(retries = 3, delay = 1200) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const response = await fetch(GAS_URL, {
+        method: 'POST',
+        body: JSON.stringify({ token: SECRET_TOKEN, action: "cek_status", username: currentUserData.username })
+      });
+      if (response.ok) {
+        const res = await response.json();
+        if (res.status === "success") return res;
+      }
+    } catch (err) {
+      console.warn(`Percobaan cek_status ke-${i + 1} gagal, mencoba lagi...`);
+    }
+    if (i < retries - 1) {
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+  throw new Error("Gagal terhubung ke server setelah beberapa percobaan.");
+}
+
 // WIFI VALIDATION
 function isBssidValid() {
   if (!bssidPengguna) return false;
@@ -151,6 +222,7 @@ async function login() {
   if (btnLogin) btnLogin.disabled = true;
 
   document.getElementById('loginMsg').innerText = "Memverifikasi login...";
+  showLoading("Memverifikasi login...");
 
   try {
     const response = await fetch(GAS_URL, {
@@ -165,12 +237,25 @@ async function login() {
       showDashboard(currentUserData.nama);
     } else {
       document.getElementById('loginMsg').innerText = res.message;
+      Swal.fire({
+        icon: 'error',
+        title: 'Login Gagal',
+        text: res.message,
+        confirmButtonColor: '#dc3545'
+      });
     }
   } catch (e) {
     document.getElementById('loginMsg').innerText = "Gagal terhubung ke server.";
+    Swal.fire({
+      icon: 'error',
+      title: 'Koneksi Terputus',
+      text: 'Gagal terhubung ke server.',
+      confirmButtonColor: '#dc3545'
+    });
   } finally {
     isSubmitting = false;
     if (btnLogin) btnLogin.disabled = false;
+    hideLoading();
   }
 }
 
@@ -253,24 +338,25 @@ function showDashboard(nama) {
     <b>Status Hari Ini:</b> <span id="textStatusAbsen" style="color: #6c757d;"><i class="fa-solid fa-spinner fa-spin"></i> Menyinkronkan...</span>
   `;
 
-  fetch(GAS_URL, {
-    method: 'POST',
-    body: JSON.stringify({ token: SECRET_TOKEN, action: "cek_status", username: currentUserData.username })
-  })
-  .then(r => r.json())
-  .then(res => {
-    if (res.status === "success") {
+  // 1. Tampilkan data dari cache lokal jika ada (0 ms delay)
+  const statusLokal = ambilStatusLokal();
+  if (statusLokal) {
+    updateUIStatus(statusLokal);
+  }
+
+  // 2. Sinkronkan dengan server di background + Auto Retry 3x
+  fetchCekStatusWithRetry(3, 1200)
+    .then(res => {
+      simpanStatusLokal(res);
       updateUIStatus(res);
-    } else {
+    })
+    .catch(e => {
+      console.error("Gagal sinkronisasi status dari server:", e);
       const statusSpan = document.getElementById('textStatusAbsen');
-      if (statusSpan) statusSpan.innerHTML = `<span style="color:#d9534f;">Gagal memuat status</span>`;
-    }
-  })
-  .catch(e => {
-    console.error("Gagal sinkronisasi status dari server:", e);
-    const statusSpan = document.getElementById('textStatusAbsen');
-    if (statusSpan) statusSpan.innerHTML = `<span style="color:#6c757d;">Gagal terhubung ke server</span>`;
-  });
+      if (!statusLokal && statusSpan) {
+        statusSpan.innerHTML = `<span style="color:#d9534f;"><i class="fa-solid fa-wifi"></i> Koneksi lambat / Terputus</span>`;
+      }
+    });
 }
 
 async function batalkanIzin() {
@@ -290,6 +376,8 @@ async function batalkanIzin() {
   if (!confirmResult.isConfirmed) return;
 
   isSubmitting = true;
+  showLoading("Mencatat pembatalan izin...");
+
   try {
     const r = await fetch(GAS_URL, {
       method: 'POST',
@@ -321,6 +409,7 @@ async function batalkanIzin() {
     });
   } finally {
     isSubmitting = false;
+    hideLoading();
   }
 }
 
@@ -586,6 +675,7 @@ async function kirim(pos, adaFoto) {
     return;
   }
 
+  showLoading("Mengunggah foto & memvalidasi data...");
   document.getElementById('status').innerText = "Mengunggah foto & memvalidasi data ke server...";
 
   let fotoBase64 = "";
@@ -643,6 +733,7 @@ async function kirim(pos, adaFoto) {
       confirmButtonColor: '#dc3545'
     });
   } finally {
+    hideLoading();
     resetSubmitState();
   }
 }
