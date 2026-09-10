@@ -1,5 +1,6 @@
-const CACHE_NAME = "eranga-offline-v1";
-const ASSETS_TO_CACHE = [
+const CACHE_NAME = "eranga-cache-v2";
+
+const STATIC_ASSETS = [
   "./",
   "./index.html",
   "./app.js",
@@ -7,23 +8,30 @@ const ASSETS_TO_CACHE = [
   "https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"
 ];
 
-// Install Service Worker & Cache Asset Utama
+// 1. INSTALL
 self.addEventListener("install", (e) => {
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
+      return Promise.allSettled(
+        STATIC_ASSETS.map((url) => 
+          cache.add(url).catch((err) => console.warn(`[SW] Gagal memuat aset: ${url}`, err))
+        )
+      );
     })
   );
   self.skipWaiting();
 });
 
-// Activate & Hapus Cache Lama jika Ada Update
+// 2. ACTIVATE
 self.addEventListener("activate", (e) => {
   e.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
         keys.map((key) => {
-          if (key !== CACHE_NAME) return caches.delete(key);
+          if (key !== CACHE_NAME) {
+            console.log(`[SW] Menghapus cache lama: ${key}`);
+            return caches.delete(key);
+          }
         })
       );
     })
@@ -31,16 +39,42 @@ self.addEventListener("activate", (e) => {
   self.clients.claim();
 });
 
-// Strategi Fetch: Coba Network Dulu, Jika Gagal Ambil dari Cache
+// 3. FETCH
 self.addEventListener("fetch", (e) => {
+  if (e.request.method !== "GET") return;
+
   e.respondWith(
-    fetch(e.request).catch(() => {
-      return caches.match(e.request).then((response) => {
-        if (response) return response;
-        if (e.request.mode === "navigate") {
-          return caches.match("./index.html");
-        }
-      });
+    caches.match(e.request).then((cachedResponse) => {
+      if (cachedResponse) {
+        fetch(e.request)
+          .then((networkResponse) => {
+            if (networkResponse && networkResponse.status === 200) {
+              caches.open(CACHE_NAME).then((cache) => cache.put(e.request, networkResponse));
+            }
+          })
+          .catch(() => {});
+
+        return cachedResponse;
+      }
+
+      return fetch(e.request)
+        .then((networkResponse) => {
+          if (!networkResponse || networkResponse.status !== 200) {
+            return networkResponse;
+          }
+
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(e.request, responseToCache);
+          });
+
+          return networkResponse;
+        })
+        .catch(() => {
+          if (e.request.mode === "navigate") {
+            return caches.match("./index.html");
+          }
+        });
     })
   );
 });
