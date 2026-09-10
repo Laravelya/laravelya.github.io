@@ -41,7 +41,12 @@ function terimaDataWiFiFromAndroid(ssid, bssid) {
   if (lastBssid && lastBssid !== bssidPengguna) {
     const camArea = document.getElementById('cameraArea');
     if (camArea && !camArea.classList.contains('hidden')) {
-      alert(`Peringatan: Jaringan WiFi Anda berubah!\n(Dari: ${lastBssid} ke: ${bssidPengguna})\nPastikan tetap terhubung ke WiFi resmi sekolah.`);
+      Swal.fire({
+        icon: 'warning',
+        title: 'Peringatan Jaringan',
+        text: `Jaringan WiFi Anda berubah! (Dari: ${lastBssid} ke: ${bssidPengguna}). Pastikan tetap terhubung ke WiFi resmi sekolah.`,
+        confirmButtonColor: '#ffc107'
+      });
     }
   }
 }
@@ -174,7 +179,7 @@ function logout() {
   location.reload();
 }
 
-// DASHBOARD (OPTIMISTIC UI & BACKGROUND SYNC)
+// DASHBOARD
 function getHariIndonesia(date) {
   const hariArray = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
   return hariArray[date.getDay()];
@@ -229,7 +234,6 @@ function updateUIStatus(res) {
 }
 
 function showDashboard(nama) {
-  // 1. Render UI secara instan (0 ms latency)
   document.getElementById('loginSection').classList.add('hidden');
   document.getElementById('dashboardSection').classList.remove('hidden');
   document.getElementById('displayUser').innerText = nama;
@@ -249,7 +253,6 @@ function showDashboard(nama) {
     <b>Status Hari Ini:</b> <span id="textStatusAbsen" style="color: #6c757d;"><i class="fa-solid fa-spinner fa-spin"></i> Menyinkronkan...</span>
   `;
 
-  // 2. Tarik data status di latar belakang (Background Fetch)
   fetch(GAS_URL, {
     method: 'POST',
     body: JSON.stringify({ token: SECRET_TOKEN, action: "cek_status", username: currentUserData.username })
@@ -272,7 +275,19 @@ function showDashboard(nama) {
 
 async function batalkanIzin() {
   if (isSubmitting) return;
-  if (!confirm("Apakah Anda yakin ingin membatalkan permohonan Izin / Sakit ini?")) return;
+
+  const confirmResult = await Swal.fire({
+    title: 'Konfirmasi Pembatalan',
+    text: 'Apakah Anda yakin ingin membatalkan permohonan Izin / Sakit ini?',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#dc3545',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: 'Ya, Batalkan',
+    cancelButtonText: 'Batal'
+  });
+
+  if (!confirmResult.isConfirmed) return;
 
   isSubmitting = true;
   try {
@@ -282,13 +297,28 @@ async function batalkanIzin() {
     });
     const res = await r.json();
     if (res.status === "success") {
-      alert("Permohonan Izin / Sakit berhasil dibatalkan.");
+      await Swal.fire({
+        icon: 'success',
+        title: 'Berhasil',
+        text: 'Permohonan Izin / Sakit berhasil dibatalkan.',
+        confirmButtonColor: '#43ba92'
+      });
       showDashboard(currentUserData.nama);
     } else {
-      alert("Gagal mencatat pembatalan ke server: " + res.message);
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal Pembatalan',
+        text: res.message,
+        confirmButtonColor: '#dc3545'
+      });
     }
   } catch (e) {
-    alert("Gagal koneksi ke server.");
+    Swal.fire({
+      icon: 'error',
+      title: 'Koneksi Terputus',
+      text: 'Gagal terhubung ke server.',
+      confirmButtonColor: '#dc3545'
+    });
   } finally {
     isSubmitting = false;
   }
@@ -310,7 +340,12 @@ async function bukaForm(jenis) {
 
   if (jenis === 'Masuk' || jenis === 'Keluar') {
     if (!isBssidValid()) {
-      alert(`Akses Ditolak!\nAnda harus terhubung ke WiFi resmi sekolah untuk melakukan Absen ${jenis}.\n\n(BSSID Terdeteksi: ${bssidPengguna || 'Tidak Terdeteksi'})`);
+      Swal.fire({
+        icon: 'error',
+        title: 'Akses Ditolak!',
+        text: `Anda harus terhubung ke WiFi resmi sekolah untuk melakukan Absen ${jenis}. (BSSID Terdeteksi: ${bssidPengguna || 'Tidak Terdeteksi'})`,
+        confirmButtonColor: '#dc3545'
+      });
       return;
     }
   }
@@ -382,7 +417,12 @@ async function startCamera() {
       if (statusEl && btnKirim) jalankanLivenessDetection(videoEl, statusEl, btnKirim);
     };
   } catch (e) {
-    alert("Gagal membuka kamera/memuat model.");
+    Swal.fire({
+      icon: 'error',
+      title: 'Kamera Gagal',
+      text: 'Gagal membuka kamera atau memuat model deteksi wajah.',
+      confirmButtonColor: '#dc3545'
+    });
     batal();
   }
 }
@@ -440,7 +480,12 @@ function eksekusiAbsen() {
   if (isSubmitting) return;
 
   if (!isBssidValid()) {
-    alert(`Akses Ditolak!\nRouter WiFi tidak terdaftar sebagai milik sekolah atau koneksi terputus.\n(MAC Detected: ${bssidPengguna || 'Tidak Terdeteksi'})`);
+    Swal.fire({
+      icon: 'error',
+      title: 'Akses Ditolak!',
+      text: `Router WiFi tidak terdaftar sebagai milik sekolah atau koneksi terputus. (MAC Detected: ${bssidPengguna || 'Tidak Terdeteksi'})`,
+      confirmButtonColor: '#dc3545'
+    });
     batal();
     return;
   }
@@ -455,13 +500,23 @@ function eksekusiAbsen() {
     navigator.geolocation.getCurrentPosition(
       (pos) => kirim(pos, true),
       (err) => {
-        alert("Gagal mengambil GPS. Pastikan GPS HP Aktif!");
+        Swal.fire({
+          icon: 'warning',
+          title: 'GPS Gagal',
+          text: 'Gagal mengambil lokasi GPS. Pastikan GPS HP Aktif!',
+          confirmButtonColor: '#ffc107'
+        });
         resetSubmitState();
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
   } else {
-    alert("Geolocation tidak didukung browser ini.");
+    Swal.fire({
+      icon: 'error',
+      title: 'Perangkat Tidak Mendukung',
+      text: 'Geolocation tidak didukung pada browser ini.',
+      confirmButtonColor: '#dc3545'
+    });
     resetSubmitState();
   }
 }
@@ -470,7 +525,15 @@ function eksekusiIzin() {
   if (isSubmitting) return;
 
   let ket = document.getElementById('keteranganIzin').value.trim();
-  if (!ket) return alert("Isi keterangan izin!");
+  if (!ket) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Data Belum Lengkap',
+      text: 'Silakan isi alasan/keterangan izin!',
+      confirmButtonColor: '#ffc107'
+    });
+    return;
+  }
 
   isSubmitting = true;
   setSubmitButtonState(true, true);
@@ -480,7 +543,12 @@ function eksekusiIzin() {
     navigator.geolocation.getCurrentPosition(
       (pos) => kirim(pos, false),
       () => {
-        alert("Gagal mengambil GPS.");
+        Swal.fire({
+          icon: 'warning',
+          title: 'GPS Gagal',
+          text: 'Gagal mengambil lokasi GPS.',
+          confirmButtonColor: '#ffc107'
+        });
         resetSubmitState();
       }
     );
@@ -507,7 +575,12 @@ function resetSubmitState() {
 
 async function kirim(pos, adaFoto) {
   if (!currentUserData || !currentUserData.username) {
-    alert("Sesi Anda tidak valid. Silakan login ulang!");
+    Swal.fire({
+      icon: 'error',
+      title: 'Sesi Berakhir',
+      text: 'Sesi Anda tidak valid. Silakan login ulang!',
+      confirmButtonColor: '#dc3545'
+    });
     resetSubmitState();
     logout();
     return;
@@ -546,14 +619,29 @@ async function kirim(pos, adaFoto) {
     const res = await response.json();
 
     if (res.status === "success") {
-      alert("Berhasil: " + res.message);
+      await Swal.fire({
+        icon: 'success',
+        title: 'Absen Berhasil',
+        text: res.message,
+        confirmButtonColor: '#43ba92'
+      });
       showDashboard(currentUserData.nama);
       batal();
     } else {
-      alert("Ditolak Server: " + res.message);
+      Swal.fire({
+        icon: 'error',
+        title: 'Ditolak Server',
+        text: res.message,
+        confirmButtonColor: '#dc3545'
+      });
     }
   } catch (e) {
-    alert("Gagal koneksi ke server.");
+    Swal.fire({
+      icon: 'error',
+      title: 'Gagal Koneksi',
+      text: 'Gagal terhubung ke server.',
+      confirmButtonColor: '#dc3545'
+    });
   } finally {
     resetSubmitState();
   }
