@@ -13,8 +13,9 @@ let streamRef = null;
 let modePilihan = "";
 let currentUserData = null;
 let isLivenessPassed = false;
-let faceDetectInterval = null;
-let isSubmitting = false; // Penjaga Double Submit
+let isDetectingFace = false;
+let modelsLoaded = false;
+let isSubmitting = false;
 
 // WIFI VALIDATION
 function isBssidValid() {
@@ -47,14 +48,22 @@ function terimaDataWiFiFromAndroid(ssid, bssid) {
 
 // SESSION MANAGEMENT
 function simpanSesi(userData) {
-  localStorage.setItem("session_user", JSON.stringify(userData));
-  document.cookie = "user_session=" + encodeURIComponent(JSON.stringify(userData)) + "; max-age=" + (365*24*60*60) + "; path=/; Secure; SameSite=Strict";
+  const rememberMe = document.getElementById('rememberMe')?.checked;
+  const sessionStr = JSON.stringify(userData);
+
+  if (rememberMe) {
+    localStorage.setItem("session_user", sessionStr);
+    document.cookie = "user_session=" + encodeURIComponent(sessionStr) + "; max-age=" + (365*24*60*60) + "; path=/; Secure; SameSite=Strict";
+  } else {
+    sessionStorage.setItem("session_user", sessionStr);
+    document.cookie = "user_session=" + encodeURIComponent(sessionStr) + "; path=/; Secure; SameSite=Strict";
+  }
 }
 
 function ambilSesi() {
-  let sessionLocal = localStorage.getItem("session_user");
-  if (sessionLocal) {
-    try { return JSON.parse(sessionLocal); } catch (e) { return null; }
+  let sessionStr = localStorage.getItem("session_user") || sessionStorage.getItem("session_user");
+  if (sessionStr) {
+    try { return JSON.parse(sessionStr); } catch (e) { return null; }
   }
 
   let cookies = decodeURIComponent(document.cookie).split(';');
@@ -69,10 +78,11 @@ function ambilSesi() {
 
 function hapusSesi() {
   localStorage.removeItem("session_user");
+  sessionStorage.removeItem("session_user");
   document.cookie = "user_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 }
 
-// CEK KONEKSI INTERNET & SW
+// NETWORK CHECK
 function cekKoneksiInternet() {
   const offlineSec = document.getElementById("offlineSection");
   const loginSec = document.getElementById("loginSection");
@@ -90,27 +100,40 @@ function cekKoneksiInternet() {
 window.addEventListener("online", () => location.reload());
 window.addEventListener("offline", cekKoneksiInternet);
 
-// SINGLE INIT POINT
-window.onload = async function() {
+// INIT POINT
+window.addEventListener('DOMContentLoaded', () => {
   cekKoneksiInternet();
   if (!navigator.onLine) return;
 
-  await loadFaceAPIModels();
+  const passwordInput = document.getElementById('password');
+  if (passwordInput) {
+    passwordInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') login();
+    });
+  }
+
+  const toggleBtn = document.getElementById('togglePassword');
+  if (toggleBtn) {
+    toggleBtn.onclick = function() {
+      let p = document.getElementById('password');
+      p.type = p.type === 'password' ? 'text' : 'password';
+      this.querySelector('i').className = p.type === 'password' ? 'fa-solid fa-eye' : 'fa-solid fa-eye-slash';
+    };
+  }
+
   const savedUser = ambilSesi();
   if (savedUser) {
     currentUserData = savedUser;
     showDashboard(currentUserData.nama);
   }
-};
 
-document.getElementById('togglePassword').onclick = function() {
-  let p = document.getElementById('password');
-  p.type = p.type === 'password' ? 'text' : 'password';
-  this.querySelector('i').className = p.type === 'password' ? 'fa-solid fa-eye' : 'fa-solid fa-eye-slash';
-};
+  setTimeout(loadFaceAPIModels, 2000);
+});
 
 // LOGIN
-function login() {
+async function login() {
+  if (isSubmitting) return;
+
   let u = document.getElementById('username').value.trim();
   let p = document.getElementById('password').value.trim();
   if (!u || !p) {
@@ -118,14 +141,19 @@ function login() {
     return;
   }
 
+  isSubmitting = true;
+  const btnLogin = document.getElementById('btnLogin');
+  if (btnLogin) btnLogin.disabled = true;
+
   document.getElementById('loginMsg').innerText = "Memverifikasi login...";
 
-  fetch(GAS_URL, {
-    method: 'POST',
-    body: JSON.stringify({ token: SECRET_TOKEN, action: "login", username: u, password: p })
-  })
-  .then(r => r.json())
-  .then(res => {
+  try {
+    const response = await fetch(GAS_URL, {
+      method: 'POST',
+      body: JSON.stringify({ token: SECRET_TOKEN, action: "login", username: u, password: p })
+    });
+    const res = await response.json();
+
     if (res.status === "success") {
       currentUserData = res.user;
       simpanSesi(currentUserData);
@@ -133,10 +161,12 @@ function login() {
     } else {
       document.getElementById('loginMsg').innerText = res.message;
     }
-  })
-  .catch(() => {
+  } catch (e) {
     document.getElementById('loginMsg').innerText = "Gagal terhubung ke server.";
-  });
+  } finally {
+    isSubmitting = false;
+    if (btnLogin) btnLogin.disabled = false;
+  }
 }
 
 function logout() {
@@ -144,7 +174,7 @@ function logout() {
   location.reload();
 }
 
-// DASHBOARD & DINAMIS TOMBOL
+// DASHBOARD
 function getHariIndonesia(date) {
   const hariArray = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
   return hariArray[date.getDay()];
@@ -161,12 +191,13 @@ async function showDashboard(nama) {
   const namaHari = getHariIndonesia(wita);
   const tanggalHariIni = wita.toISOString().split('T')[0];
 
-  document.getElementById('userInfo').innerHTML = `
+  const userInfoEl = document.getElementById('userInfo');
+  userInfoEl.innerHTML = `
     <b>Hari / Tanggal:</b> ${namaHari}, ${tanggalHariIni} WITA<br>
     <b>Nama:</b> ${currentUserData.nama}<br>
     <b>NUPTK:</b> ${currentUserData.nuptk}<br>
     <b>Jabatan:</b> ${currentUserData.jabatan}<br>
-    <b>Status Hari Ini:</b> <span style="color: #6c757d;">Memeriksa status server...</span>
+    <b>Status Hari Ini:</b> <span id="textStatusAbsen" style="color: #6c757d;">Memeriksa status server...</span>
   `;
 
   let statusMasuk = "Belum", jamMasuk = "";
@@ -212,14 +243,13 @@ async function showDashboard(nama) {
 
     infoStatusHTML = `Masuk: <span style="color: ${textMasukColor}; font-weight: bold;">${labelMasuk}</span> | Keluar: <span style="color: ${textKeluarColor}; font-weight: bold;">${labelKeluar}</span>`;
 
-    // ALUR TAMPILAN HIDDEN/SHOW TOMBOL
     if (statusMasuk === "Belum") {
       if (btnMasuk) btnMasuk.classList.remove("hidden");
-      if (btnKeluar) btnKeluar.classList.add("hidden"); // Sembunyikan Keluar sebelum Masuk
+      if (btnKeluar) btnKeluar.classList.add("hidden");
       if (btnIzin) btnIzin.classList.remove("hidden");
     } else if (statusMasuk === "Sudah" && statusKeluar === "Belum") {
       if (btnMasuk) btnMasuk.classList.add("hidden");
-      if (btnKeluar) btnKeluar.classList.remove("hidden"); // Tampilkan Keluar setelah Masuk
+      if (btnKeluar) btnKeluar.classList.remove("hidden");
       if (btnIzin) btnIzin.classList.add("hidden");
     } else {
       if (btnMasuk) btnMasuk.classList.add("hidden");
@@ -228,35 +258,31 @@ async function showDashboard(nama) {
     }
   }
 
-  document.getElementById('userInfo').innerHTML = `
-    <b>Hari / Tanggal:</b> ${namaHari}, ${tanggalHariIni} WITA<br>
-    <b>Nama:</b> ${currentUserData.nama}<br>
-    <b>NUPTK:</b> ${currentUserData.nuptk}<br>
-    <b>Jabatan:</b> ${currentUserData.jabatan}<br>
-    <b>Status Hari Ini:</b> <span id="textStatusAbsen">${infoStatusHTML}</span>
-  `;
+  const statusSpan = document.getElementById('textStatusAbsen');
+  if (statusSpan) statusSpan.innerHTML = infoStatusHTML;
 }
 
-function batalkanIzin() {
-  if (confirm("Apakah Anda yakin ingin membatalkan permohonan Izin / Sakit ini?")) {
-    fetch(GAS_URL, {
+async function batalkanIzin() {
+  if (isSubmitting) return;
+  if (!confirm("Apakah Anda yakin ingin membatalkan permohonan Izin / Sakit ini?")) return;
+
+  isSubmitting = true;
+  try {
+    const r = await fetch(GAS_URL, {
       method: 'POST',
-      body: JSON.stringify({
-        token: SECRET_TOKEN,
-        action: "batal_izin",
-        username: currentUserData.username
-      })
-    })
-    .then(r => r.json())
-    .then(res => {
-      if (res.status === "success") {
-        showDashboard(currentUserData.nama);
-        alert("Permohonan Izin / Sakit berhasil dibatalkan.");
-      } else {
-        alert("Gagal mencatat pembatalan ke server: " + res.message);
-      }
-    })
-    .catch(() => alert("Gagal koneksi ke server."));
+      body: JSON.stringify({ token: SECRET_TOKEN, action: "batal_izin", username: currentUserData.username })
+    });
+    const res = await r.json();
+    if (res.status === "success") {
+      alert("Permohonan Izin / Sakit berhasil dibatalkan.");
+      showDashboard(currentUserData.nama);
+    } else {
+      alert("Gagal mencatat pembatalan ke server: " + res.message);
+    }
+  } catch (e) {
+    alert("Gagal koneksi ke server.");
+  } finally {
+    isSubmitting = false;
   }
 }
 
@@ -269,7 +295,7 @@ function updateClock() {
 setInterval(updateClock, 1000);
 
 // FORM & KAMERA
-function bukaForm(jenis) {
+async function bukaForm(jenis) {
   if (window.AndroidBridge && typeof window.AndroidBridge.requestBssidUpdate === 'function') {
     window.AndroidBridge.requestBssidUpdate();
   }
@@ -290,20 +316,32 @@ function bukaForm(jenis) {
 
   modePilihan = jenis;
   document.getElementById('mainButtons').classList.add('hidden');
-  if (jenis === 'Masuk' || jenis === 'Keluar') {
-    document.getElementById('menuTitle').innerText = "Foto Absen " + jenis;
-    document.getElementById('cameraArea').classList.remove('hidden');
-    startCamera();
-  }
+  document.getElementById('menuTitle').innerText = "Foto Absen " + jenis;
+  document.getElementById('cameraArea').classList.remove('hidden');
+  
+  await startCamera();
 }
 
 function batal() {
-  if (faceDetectInterval) clearInterval(faceDetectInterval);
+  isDetectingFace = false;
   stopCamera();
   document.getElementById('cameraArea').classList.add('hidden');
   document.getElementById('izinArea').classList.add('hidden');
   document.getElementById('mainButtons').classList.remove('hidden');
   document.getElementById('status').innerText = "";
+  
+  const faceOverlay = document.getElementById('faceOverlay');
+  if (faceOverlay) faceOverlay.className = "face-overlay";
+}
+
+async function loadFaceAPIModels() {
+  if (modelsLoaded || typeof faceapi === 'undefined') return;
+  const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
+  await Promise.all([
+    faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+    faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL)
+  ]);
+  modelsLoaded = true;
 }
 
 async function startCamera() {
@@ -313,6 +351,17 @@ async function startCamera() {
     if (btnKirim) btnKirim.classList.add('hidden');
 
     const statusEl = document.getElementById('livenessStatus');
+    const faceOverlay = document.getElementById('faceOverlay');
+    
+    if (faceOverlay) faceOverlay.className = "face-overlay";
+
+    if (statusEl) {
+      statusEl.innerText = "Memuat model deteksi...";
+      statusEl.style.color = "blue";
+    }
+
+    await loadFaceAPIModels();
+
     if (statusEl) {
       statusEl.innerText = "Kamera aktif. Posisikan wajah Anda...";
       statusEl.style.color = "red";
@@ -325,56 +374,71 @@ async function startCamera() {
       if (statusEl && btnKirim) jalankanLivenessDetection(videoEl, statusEl, btnKirim);
     };
   } catch (e) {
-    alert("Gagal membuka kamera.");
+    alert("Gagal membuka kamera/memuat model.");
     batal();
   }
 }
 
-function jalankanLivenessDetection(videoEl, statusEl, btnKirim) {
-  if (faceDetectInterval) clearInterval(faceDetectInterval);
+// LIVENESS DETECTION (NON-OVERLAPPING RECURSIVE LOOP)
+async function jalankanLivenessDetection(videoEl, statusEl, btnKirim) {
+  isDetectingFace = true;
+  const faceOverlay = document.getElementById('faceOverlay');
 
-  faceDetectInterval = setInterval(async () => {
-    if (isLivenessPassed) {
-      clearInterval(faceDetectInterval);
-      return;
-    }
+  const detectFrame = async () => {
+    if (!isDetectingFace || isLivenessPassed) return;
 
-    const detection = await faceapi.detectSingleFace(videoEl, new faceapi.TinyFaceDetectorOptions()).withFaceExpressions();
-    if (detection) {
-      if (detection.expressions.happy > 0.7) {
-        isLivenessPassed = true;
-        statusEl.innerText = "Liveness Test Sukses! Silakan Lanjutkan Absen.";
-        statusEl.style.color = "green";
-        btnKirim.classList.remove('hidden');
-        clearInterval(faceDetectInterval);
+    try {
+      const detection = await faceapi.detectSingleFace(videoEl, new faceapi.TinyFaceDetectorOptions()).withFaceExpressions();
+      if (detection) {
+        if (detection.expressions.happy > 0.7) {
+          isLivenessPassed = true;
+          isDetectingFace = false;
+          statusEl.innerText = "Liveness Test Sukses! Silakan Lanjutkan Absen.";
+          statusEl.style.color = "green";
+          if (faceOverlay) faceOverlay.className = "face-overlay success";
+          btnKirim.classList.remove('hidden');
+          return;
+        } else {
+          statusEl.innerText = "Wajah terdeteksi. Silakan SENYUM LEBAR untuk absen!";
+          statusEl.style.color = "#ff9800";
+          if (faceOverlay) faceOverlay.className = "face-overlay warning";
+        }
       } else {
-        statusEl.innerText = "Wajah terdeteksi. Silakan SENYUM LEBAR untuk absen!";
-        statusEl.style.color = "#ff9800";
+        statusEl.innerText = "Wajah TIDAK terdeteksi. Posisikan wajah ke kamera.";
+        statusEl.style.color = "red";
+        if (faceOverlay) faceOverlay.className = "face-overlay";
       }
-    } else {
-      statusEl.innerText = "Wajah TIDAK terdeteksi. Posisikan wajah ke kamera.";
-      statusEl.style.color = "red";
+    } catch (err) {
+      console.error("Deteksi error:", err);
     }
-  }, 500);
+
+    if (isDetectingFace && !isLivenessPassed) {
+      setTimeout(detectFrame, 200);
+    }
+  };
+
+  detectFrame();
 }
 
 function stopCamera() {
-  if (streamRef) streamRef.getTracks().forEach(t => t.stop());
+  if (streamRef) {
+    streamRef.getTracks().forEach(t => t.stop());
+    streamRef = null;
+  }
 }
 
-async function loadFaceAPIModels() {
-  const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
-  await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-  await faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL);
-}
-
-// EKSEKUSI & RESIZE FOTO (MENGHINDARI SLOW/TIMEOUT)
+// EKSEKUSI & SUBMIT
 function eksekusiAbsen() {
+  if (isSubmitting) return;
+
   if (!isBssidValid()) {
     alert(`Akses Ditolak!\nRouter WiFi tidak terdaftar sebagai milik sekolah atau koneksi terputus.\n(MAC Detected: ${bssidPengguna || 'Tidak Terdeteksi'})`);
     batal();
     return;
   }
+
+  isSubmitting = true;
+  setSubmitButtonState(true);
 
   document.getElementById('status').innerText = "Mendapatkan lokasi GPS...";
   document.getElementById('status').style.color = "blue";
@@ -382,38 +446,63 @@ function eksekusiAbsen() {
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
       (pos) => kirim(pos, true),
-      () => alert("Gagal mengambil GPS. Pastikan GPS HP Aktif!"),
+      (err) => {
+        alert("Gagal mengambil GPS. Pastikan GPS HP Aktif!");
+        resetSubmitState();
+      },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
+  } else {
+    alert("Geolocation tidak didukung browser ini.");
+    resetSubmitState();
   }
 }
 
 function eksekusiIzin() {
+  if (isSubmitting) return;
+
   let ket = document.getElementById('keteranganIzin').value.trim();
   if (!ket) return alert("Isi keterangan izin!");
 
+  isSubmitting = true;
+  setSubmitButtonState(true, true);
   document.getElementById('status').innerText = "Mengirim izin...";
+
   if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition((pos) => kirim(pos, false), () => alert("Gagal mengambil GPS."));
+    navigator.geolocation.getCurrentPosition(
+      (pos) => kirim(pos, false),
+      () => {
+        alert("Gagal mengambil GPS.");
+        resetSubmitState();
+      }
+    );
+  } else {
+    resetSubmitState();
   }
 }
 
-function kirim(pos, adaFoto) {
+function setSubmitButtonState(disabled, isIzin = false) {
+  const btn = isIzin ? document.getElementById('btnKirimIzin') : document.getElementById('btnKirimAbsen');
+  if (btn) {
+    btn.disabled = disabled;
+    btn.innerText = disabled ? "MEMPROSES..." : (isIzin ? "KIRIM PERMOHONAN" : "KIRIM ABSEN");
+    btn.style.opacity = disabled ? "0.5" : "1";
+  }
+}
+
+function resetSubmitState() {
+  isSubmitting = false;
+  setSubmitButtonState(false, false);
+  setSubmitButtonState(false, true);
+  document.getElementById('status').innerText = "";
+}
+
+async function kirim(pos, adaFoto) {
   if (!currentUserData || !currentUserData.username) {
     alert("Sesi Anda tidak valid. Silakan login ulang!");
+    resetSubmitState();
     logout();
     return;
-  }
-
-  // PREVENT DOUBLE SUBMIT
-  if (isSubmitting) return;
-  isSubmitting = true;
-
-  const btnKirim = document.getElementById('btnKirimAbsen');
-  if (btnKirim) {
-    btnKirim.disabled = true;
-    btnKirim.innerText = "MEMPROSES...";
-    btnKirim.style.opacity = "0.5";
   }
 
   document.getElementById('status').innerText = "Mengunggah foto & memvalidasi data ke server...";
@@ -423,7 +512,6 @@ function kirim(pos, adaFoto) {
     const v = document.getElementById('video');
     const c = document.getElementById('canvas');
 
-    // RESIZE FOTO KE MAX WIDTH 640PX (2MB -> ~60KB)
     const maxWidth = 640;
     const scale = maxWidth / v.videoWidth;
     c.width = maxWidth;
@@ -445,28 +533,20 @@ function kirim(pos, adaFoto) {
     photo: fotoBase64
   };
 
-  fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) })
-  .then(r => r.json())
-  .then(res => {
+  try {
+    const response = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
+    const res = await response.json();
+
     if (res.status === "success") {
       alert("Berhasil: " + res.message);
       showDashboard(currentUserData.nama);
       batal();
     } else {
       alert("Ditolak Server: " + res.message);
-      document.getElementById('status').innerText = "";
     }
-  })
-  .catch(() => {
+  } catch (e) {
     alert("Gagal koneksi ke server.");
-    document.getElementById('status').innerText = "";
-  })
-  .finally(() => {
-    isSubmitting = false;
-    if (btnKirim) {
-      btnKirim.disabled = false;
-      btnKirim.innerText = "KIRIM ABSEN";
-      btnKirim.style.opacity = "1";
-    }
-  });
+  } finally {
+    resetSubmitState();
+  }
 }
