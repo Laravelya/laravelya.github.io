@@ -676,7 +676,6 @@ function resetSubmitState() {
   document.getElementById('status').innerText = "";
 }
 
-// Bugnya disini
 async function kirim(pos, adaFoto) {
   if (!currentUserData || !currentUserData.username) {
     hideLoading();
@@ -724,12 +723,11 @@ async function kirim(pos, adaFoto) {
     const response = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
     const res = await response.json();
 
-    // 1. Matikan loading overlay terlebih dahulu secara mutlak
+    // Sembunyikan overlay dan reset state SEBELUM menampilkan modal SweetAlert2
     hideLoading();
     resetSubmitState();
 
     if (res.status === "success") {
-      // 2. Baru tampilkan modal sukses SweetAlert2
       await Swal.fire({
         icon: 'success',
         title: 'Absen Berhasil',
@@ -747,82 +745,13 @@ async function kirim(pos, adaFoto) {
       });
     }
   } catch (e) {
-    // Pastikan loading tertutup jika terjadi error jaringan
     hideLoading();
     resetSubmitState();
-    
     await Swal.fire({
       icon: 'error',
       title: 'Gagal Koneksi',
       text: 'Gagal terhubung ke server.',
       confirmButtonColor: '#dc3545'
     });
-  }
-}
-
-  showLoading("Mengunggah foto & memvalidasi data...");
-  document.getElementById('status').innerText = "Mengunggah foto & memvalidasi data ke server...";
-
-  let fotoBase64 = "";
-  if (adaFoto) {
-    const v = document.getElementById('video');
-    const c = document.getElementById('canvas');
-
-    const maxWidth = 640;
-    const scale = maxWidth / v.videoWidth;
-    c.width = maxWidth;
-    c.height = v.videoHeight * scale;
-
-    const ctx = c.getContext('2d');
-    ctx.drawImage(v, 0, 0, c.width, c.height);
-    fotoBase64 = c.toDataURL('image/jpeg', 0.6);
-  }
-
-  const payload = {
-    token: SECRET_TOKEN,
-    action: "absen",
-    username: currentUserData.username,
-    jenis: adaFoto ? modePilihan : document.getElementById('jenisIzin').value,
-    latitude: pos.coords.latitude,
-    longitude: pos.coords.longitude,
-    keterangan: adaFoto ? "" : document.getElementById('keteranganIzin').value,
-    photo: fotoBase64
-  };
-
-  try {
-    const response = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
-    const res = await response.json();
-
-    // Sembunyikan overlay SEBELUM menampilkan modal SweetAlert2
-    hideLoading();
-
-    if (res.status === "success") {
-      await Swal.fire({
-        icon: 'success',
-        title: 'Absen Berhasil',
-        text: res.message,
-        confirmButtonColor: '#43ba92'
-      });
-      showDashboard(currentUserData.nama);
-      batal();
-    } else {
-      Swal.fire({
-        icon: 'error',
-        title: 'Ditolak Server',
-        text: res.message,
-        confirmButtonColor: '#dc3545'
-      });
-    }
-  } catch (e) {
-    hideLoading();
-    Swal.fire({
-      icon: 'error',
-      title: 'Gagal Koneksi',
-      text: 'Gagal terhubung ke server.',
-      confirmButtonColor: '#dc3545'
-    });
-  } finally {
-    hideLoading();
-    resetSubmitState();
   }
 }
