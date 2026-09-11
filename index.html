@@ -111,8 +111,20 @@
         #dashboardSection { text-align: center; }
         #dashboardSection > h3 { margin: 0 0 22px; color: var(--ink) !important; font-size: clamp(22px, 4vw, 30px); letter-spacing: -.03em; }
         #displayUser { color: var(--brand); }
-        .user-info { position: relative; margin-bottom: 18px; padding: 18px 20px; border: 1px solid #d7ebe5; border-left: 4px solid var(--brand); border-radius: 14px; background: var(--brand-soft); color: var(--ink); text-align: left; font-size: 13px; line-height: 1.8; }
-        .user-info b { color: var(--brand-dark); font-weight: 700; }
+        .user-info { position: relative; margin-bottom: 24px; padding: 20px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); color: var(--ink); text-align: left; box-shadow: 0 10px 24px rgba(20, 42, 59, .06); }
+        .profile-heading { display: flex; align-items: center; gap: 12px; padding-bottom: 17px; border-bottom: 1px solid #edf1f1; }
+        .profile-icon { width: 40px; height: 40px; display: grid; place-items: center; flex: 0 0 40px; border-radius: 11px; color: var(--brand); background: var(--brand-soft); }
+        .profile-kicker { display: block; margin-bottom: 3px; color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+        .profile-name { display: block; color: var(--ink); font: 700 16px 'Plus Jakarta Sans', sans-serif; }
+        .profile-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0 22px; padding-top: 16px; }
+        .profile-item { min-width: 0; padding: 9px 0; }
+        .profile-label { display: block; margin-bottom: 4px; color: var(--muted); font-size: 11px; font-weight: 600; }
+        .profile-value { display: block; overflow-wrap: anywhere; color: var(--ink); font-size: 13px; font-weight: 700; line-height: 1.35; }
+        .profile-value em { margin-left: 5px; color: var(--brand); font-size: 10px; font-style: normal; font-weight: 800; letter-spacing: .06em; }
+        .today-status { display: flex; align-items: center; justify-content: space-between; gap: 14px; grid-column: 1 / -1; margin-top: 10px; padding: 14px 16px; border: 1px solid #cfe8df; border-radius: 12px; background: var(--brand-soft); }
+        .today-status-label { display: flex; align-items: center; gap: 9px; color: var(--brand-dark); font-size: 12px; font-weight: 800; }
+        .today-status-label i { font-size: 15px; }
+        #textStatusAbsen { color: var(--ink); font-size: 12px; line-height: 1.5; text-align: right; }
         #clock { margin: 0 0 24px; color: var(--ink); font: 800 clamp(28px, 6vw, 42px) 'Plus Jakarta Sans', sans-serif; letter-spacing: .03em; }
         #mainButtons { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
         .dashboard-btn { margin: 0; color: #fff; }
@@ -145,6 +157,9 @@
             .container { min-height: calc(100vh - 24px); border-radius: 18px; padding: 26px 20px 20px; }
             #mainButtons { grid-template-columns: 1fr; }
             #mainButtons .btn-gray { grid-column: auto; }
+            .profile-grid { grid-template-columns: 1fr; gap: 0; }
+            .today-status { align-items: flex-start; flex-direction: column; gap: 7px; }
+            #textStatusAbsen { text-align: left; }
         }
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after { transition-duration: .01ms !important; }

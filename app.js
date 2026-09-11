@@ -330,11 +330,31 @@ function showDashboard(nama) {
 
   const userInfoEl = document.getElementById('userInfo');
   userInfoEl.innerHTML = `
-    <b>Hari / Tanggal:</b> ${namaHari}, ${tanggalHariIni} WITA<br>
-    <b>Nama:</b> ${currentUserData.nama}<br>
-    <b>NUPTK:</b> ${currentUserData.nuptk}<br>
-    <b>Jabatan:</b> ${currentUserData.jabatan}<br>
-    <b>Status Hari Ini:</b> <span id="textStatusAbsen" style="color: #6c757d;"><i class="fa-solid fa-spinner fa-spin"></i> Menyinkronkan...</span>
+    <div class="profile-heading">
+      <span class="profile-icon" aria-hidden="true"><i class="fa-solid fa-id-card"></i></span>
+      <div>
+        <span class="profile-kicker">Profil pengguna</span>
+        <strong class="profile-name">${currentUserData.nama}</strong>
+      </div>
+    </div>
+    <div class="profile-grid">
+      <div class="profile-item">
+        <span class="profile-label">Hari / Tanggal</span>
+        <strong class="profile-value">${namaHari}, ${tanggalHariIni}<em>WITA</em></strong>
+      </div>
+      <div class="profile-item">
+        <span class="profile-label">NUPTK</span>
+        <strong class="profile-value">${currentUserData.nuptk || '-'}</strong>
+      </div>
+      <div class="profile-item">
+        <span class="profile-label">Jabatan</span>
+        <strong class="profile-value">${currentUserData.jabatan || '-'}</strong>
+      </div>
+      <div class="today-status">
+        <span class="today-status-label"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i> Status Hari Ini</span>
+        <span id="textStatusAbsen" aria-live="polite"><i class="fa-solid fa-spinner fa-spin"></i> Menyinkronkan...</span>
+      </div>
+    </div>
   `;
 
   // 1. Tampilkan data dari cache lokal jika ada (0 ms delay)
