@@ -258,7 +258,21 @@ async function login() {
   }
 }
 
-function logout() {
+async function logout() {
+  const confirmResult = await Swal.fire({
+    icon: 'question',
+    title: 'Konfirmasi Logout',
+    text: 'Apakah Anda yakin ingin keluar dari aplikasi?',
+    showCancelButton: true,
+    confirmButtonText: 'Ya, Logout',
+    cancelButtonText: 'Batal',
+    confirmButtonColor: '#c84545',
+    cancelButtonColor: '#647586',
+    reverseButtons: true
+  });
+
+  if (!confirmResult.isConfirmed) return;
+
   hapusSesi();
   location.reload();
 }
