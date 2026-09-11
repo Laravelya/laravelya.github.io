@@ -1,6 +1,5 @@
 // CONFIG
 const GAS_URL = "https://script.google.com/macros/s/AKfycbwYEFsmJm4hj0572k8GVpQi0cUOWDPgHwaRK9qeLQ50oyqcIWD4As8Wgp1p9EMazEZY-g/exec";
-const SECRET_TOKEN = "ErangaT0ken_2026";
 const DAFTAR_BSSID_SEKOLAH = [
   "06:20:84:9a:42:1b",
   "06:20:84:aa:42:1b",
@@ -16,6 +15,9 @@ let isLivenessPassed = false;
 let isDetectingFace = false;
 let modelsLoaded = false;
 let isSubmitting = false;
+let statusSyncPromise = null;
+let livenessConfirmCount = 0;
+const LIVENESS_REQUIRED_FRAMES = 3;
 
 // HELPER LOADING OVERLAY BLUR
 function showLoading(pesan = "Memproses data...") {
@@ -24,6 +26,15 @@ function showLoading(pesan = "Memproses data...") {
 
 function hideLoading() {
   // Loading overlay dinonaktifkan agar proses tidak menghalangi tampilan aplikasi.
+}
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
 
 // HELPER LOCAL CACHE STATUS
@@ -64,24 +75,41 @@ function ambilStatusLokal() {
 
 // HELPER FETCH WITH AUTO-RETRY
 async function fetchCekStatusWithRetry(retries = 3, delay = 1200) {
-  for (let i = 0; i < retries; i++) {
-    try {
-      const response = await fetch(GAS_URL, {
-        method: 'POST',
-        body: JSON.stringify({ token: SECRET_TOKEN, action: "cek_status", username: currentUserData.username })
-      });
-      if (response.ok) {
-        const res = await response.json();
-        if (res.status === "success") return res;
+  if (statusSyncPromise) return statusSyncPromise;
+  if (!currentUserData?.sessionToken) return Promise.reject(new Error("Sesi tidak tersedia."));
+
+  statusSyncPromise = (async () => {
+    for (let i = 0; i < retries; i++) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      try {
+        const response = await fetch(GAS_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: "cek_status", sessionToken: currentUserData.sessionToken }),
+          signal: controller.signal
+        });
+        if (response.ok) {
+          const res = await response.json();
+          if (res.status === "success") return res;
+        }
+      } catch (err) {
+        console.warn(`Percobaan cek_status ke-${i + 1} gagal, mencoba lagi...`);
+      } finally {
+        clearTimeout(timeoutId);
       }
-    } catch (err) {
-      console.warn(`Percobaan cek_status ke-${i + 1} gagal, mencoba lagi...`);
+
+      if (i < retries - 1) {
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
     }
-    if (i < retries - 1) {
-      await new Promise(resolve => setTimeout(resolve, delay));
-    }
-  }
-  throw new Error("Gagal terhubung ke server setelah beberapa percobaan.");
+    throw new Error("Gagal terhubung ke server setelah beberapa percobaan.");
+  })();
+
+  statusSyncPromise.then(
+    () => { statusSyncPromise = null; },
+    () => { statusSyncPromise = null; }
+  );
+  return statusSyncPromise;
 }
 
 // WIFI VALIDATION
@@ -125,10 +153,8 @@ function simpanSesi(userData) {
 
   if (rememberMe) {
     localStorage.setItem("session_user", sessionStr);
-    document.cookie = "user_session=" + encodeURIComponent(sessionStr) + "; max-age=" + (365*24*60*60) + "; path=/; Secure; SameSite=Strict";
   } else {
     sessionStorage.setItem("session_user", sessionStr);
-    document.cookie = "user_session=" + encodeURIComponent(sessionStr) + "; path=/; Secure; SameSite=Strict";
   }
 }
 
@@ -136,14 +162,6 @@ function ambilSesi() {
   let sessionStr = localStorage.getItem("session_user") || sessionStorage.getItem("session_user");
   if (sessionStr) {
     try { return JSON.parse(sessionStr); } catch (e) { return null; }
-  }
-
-  let cookies = decodeURIComponent(document.cookie).split(';');
-  for (let i = 0; i < cookies.length; i++) {
-    let c = cookies[i].trim();
-    if (c.indexOf("user_session=") === 0) {
-      try { return JSON.parse(c.substring("user_session=".length)); } catch (e) { return null; }
-    }
   }
   return null;
 }
@@ -194,9 +212,11 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   const savedUser = ambilSesi();
-  if (savedUser) {
+  if (savedUser?.sessionToken) {
     currentUserData = savedUser;
     showDashboard(currentUserData.nama);
+  } else if (savedUser) {
+    hapusSesi();
   }
 
   setTimeout(loadFaceAPIModels, 2000);
@@ -223,14 +243,14 @@ async function login() {
   try {
     const response = await fetch(GAS_URL, {
       method: 'POST',
-      body: JSON.stringify({ token: SECRET_TOKEN, action: "login", username: u, password: p })
+      body: JSON.stringify({ action: "login", username: u, password: p })
     });
     const res = await response.json();
 
     hideLoading();
 
     if (res.status === "success") {
-      currentUserData = res.user;
+      currentUserData = { ...res.user, sessionToken: res.sessionToken };
       simpanSesi(currentUserData);
       showDashboard(currentUserData.nama);
     } else {
@@ -273,8 +293,17 @@ async function logout() {
 
   if (!confirmResult.isConfirmed) return;
 
-  hapusSesi();
-  location.reload();
+  try {
+    await fetch(GAS_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: "logout", sessionToken: currentUserData?.sessionToken })
+    });
+  } catch (e) {
+    console.warn("Sesi server tidak dapat dihapus:", e);
+  } finally {
+    hapusSesi();
+    location.reload();
+  }
 }
 
 // DASHBOARD
@@ -296,7 +325,7 @@ function updateUIStatus(res) {
   const btnIzin = document.querySelector("button[onclick*=\"bukaForm('Izin')\"]");
 
   if (statusIzin) {
-    infoStatusHTML = `<span style="color: #ffc107; font-weight: bold;">${statusIzin} (Izin Aktif)</span><br>
+    infoStatusHTML = `<span style="color: #ffc107; font-weight: bold;">${escapeHtml(statusIzin)} (Izin Aktif)</span><br>
       <button onclick="batalkanIzin()" style="margin-top:8px; padding:6px 12px; background-color:#dc3545; color:white; border:none; border-radius:6px; font-size:12px; cursor:pointer;">
         <i class="fa-solid fa-rotate-left"></i> Batalkan Izin/Sakit
       </button>`;
@@ -310,7 +339,7 @@ function updateUIStatus(res) {
     let labelMasuk = statusMasuk === "Sudah" ? `Sudah (${jamMasuk || 'Terekam'})` : "Belum";
     let labelKeluar = statusKeluar === "Sudah" ? `Sudah (${jamKeluar || 'Terekam'})` : "Belum";
 
-    infoStatusHTML = `Masuk: <span style="color: ${textMasukColor}; font-weight: bold;">${labelMasuk}</span> | Keluar: <span style="color: ${textKeluarColor}; font-weight: bold;">${labelKeluar}</span>`;
+    infoStatusHTML = `Masuk: <span style="color: ${textMasukColor}; font-weight: bold;">${escapeHtml(labelMasuk)}</span> | Keluar: <span style="color: ${textKeluarColor}; font-weight: bold;">${escapeHtml(labelKeluar)}</span>`;
 
     if (statusMasuk === "Belum") {
       if (btnMasuk) btnMasuk.classList.remove("hidden");
@@ -348,21 +377,21 @@ function showDashboard(nama) {
       <span class="profile-icon" aria-hidden="true"><i class="fa-solid fa-id-card"></i></span>
       <div>
         <span class="profile-kicker">Profil pengguna</span>
-        <strong class="profile-name">${currentUserData.nama}</strong>
+        <strong class="profile-name">${escapeHtml(currentUserData.nama)}</strong>
       </div>
     </div>
     <div class="profile-grid">
       <div class="profile-item">
         <span class="profile-label">Hari / Tanggal</span>
-        <strong class="profile-value">${namaHari}, ${tanggalHariIni}<em>WITA</em></strong>
+        <strong class="profile-value">${escapeHtml(namaHari)}, ${escapeHtml(tanggalHariIni)}<em>WITA</em></strong>
       </div>
       <div class="profile-item">
         <span class="profile-label">NUPTK</span>
-        <strong class="profile-value">${currentUserData.nuptk || '-'}</strong>
+        <strong class="profile-value">${escapeHtml(currentUserData.nuptk || '-')}</strong>
       </div>
       <div class="profile-item">
         <span class="profile-label">Jabatan</span>
-        <strong class="profile-value">${currentUserData.jabatan || '-'}</strong>
+        <strong class="profile-value">${escapeHtml(currentUserData.jabatan || '-')}</strong>
       </div>
       <div class="today-status">
         <span class="today-status-label"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i> Status Hari Ini</span>
@@ -414,7 +443,7 @@ async function batalkanIzin() {
   try {
     const r = await fetch(GAS_URL, {
       method: 'POST',
-      body: JSON.stringify({ token: SECRET_TOKEN, action: "batal_izin", username: currentUserData.username })
+      body: JSON.stringify({ action: "batal_izin", sessionToken: currentUserData.sessionToken })
     });
     const res = await r.json();
 
@@ -493,6 +522,8 @@ async function bukaForm(jenis) {
 
 function batal() {
   isDetectingFace = false;
+  isLivenessPassed = false;
+  livenessConfirmCount = 0;
   stopCamera();
   document.getElementById('cameraArea').classList.add('hidden');
   document.getElementById('izinArea').classList.add('hidden');
@@ -504,7 +535,10 @@ function batal() {
 }
 
 async function loadFaceAPIModels() {
-  if (modelsLoaded || typeof faceapi === 'undefined') return;
+  if (modelsLoaded) return;
+  if (typeof faceapi === 'undefined') {
+    throw new Error("Library deteksi wajah belum tersedia.");
+  }
   const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
   await Promise.all([
     faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
@@ -516,6 +550,7 @@ async function loadFaceAPIModels() {
 async function startCamera() {
   try {
     isLivenessPassed = false;
+    livenessConfirmCount = 0;
     const btnKirim = document.getElementById('btnKirimAbsen');
     if (btnKirim) btnKirim.classList.add('hidden');
 
@@ -562,28 +597,48 @@ async function jalankanLivenessDetection(videoEl, statusEl, btnKirim) {
     if (!isDetectingFace || isLivenessPassed) return;
 
     try {
-      const detection = await faceapi.detectSingleFace(videoEl, new faceapi.TinyFaceDetectorOptions()).withFaceExpressions();
-      if (detection) {
+      const detections = await faceapi.detectAllFaces(videoEl, new faceapi.TinyFaceDetectorOptions()).withFaceExpressions();
+      if (detections.length === 1) {
+        const detection = detections[0];
         if (detection.expressions.happy > 0.7) {
-          isLivenessPassed = true;
-          isDetectingFace = false;
-          statusEl.innerText = "Liveness Test Sukses! Silakan Lanjutkan Absen.";
-          statusEl.style.color = "green";
-          if (faceOverlay) faceOverlay.className = "face-overlay success";
-          btnKirim.classList.remove('hidden');
-          return;
+          livenessConfirmCount += 1;
+          if (livenessConfirmCount >= LIVENESS_REQUIRED_FRAMES) {
+            isLivenessPassed = true;
+            isDetectingFace = false;
+            statusEl.innerText = "Liveness Test Sukses! Silakan Lanjutkan Absen.";
+            statusEl.style.color = "green";
+            if (faceOverlay) faceOverlay.className = "face-overlay success";
+            btnKirim.classList.remove('hidden');
+            return;
+          }
+          statusEl.innerText = "Senyum terdeteksi. Pertahankan senyum...";
+          statusEl.style.color = "#ff9800";
+          if (faceOverlay) faceOverlay.className = "face-overlay warning";
         } else {
+          livenessConfirmCount = 0;
           statusEl.innerText = "Wajah terdeteksi. Silakan SENYUM LEBAR untuk absen!";
           statusEl.style.color = "#ff9800";
           if (faceOverlay) faceOverlay.className = "face-overlay warning";
         }
+      } else if (detections.length > 1) {
+        livenessConfirmCount = 0;
+        statusEl.innerText = "Lebih dari satu wajah terdeteksi. Pastikan hanya satu orang di kamera.";
+        statusEl.style.color = "#c84545";
+        if (faceOverlay) faceOverlay.className = "face-overlay warning";
       } else {
+        livenessConfirmCount = 0;
         statusEl.innerText = "Wajah TIDAK terdeteksi. Posisikan wajah ke kamera.";
         statusEl.style.color = "red";
         if (faceOverlay) faceOverlay.className = "face-overlay";
       }
     } catch (err) {
       console.error("Deteksi error:", err);
+      isDetectingFace = false;
+      livenessConfirmCount = 0;
+      statusEl.innerText = "Deteksi wajah gagal. Silakan tutup lalu buka kamera kembali.";
+      statusEl.style.color = "#c84545";
+      btnKirim.classList.add('hidden');
+      return;
     }
 
     if (isDetectingFace && !isLivenessPassed) {
@@ -753,9 +808,10 @@ async function kirim(pos, adaFoto) {
   }
 
   const payload = {
-    token: SECRET_TOKEN,
     action: "absen",
-    username: currentUserData.username,
+    sessionToken: currentUserData.sessionToken,
+    bssid: bssidPengguna,
+    livenessPassed: isLivenessPassed,
     jenis: adaFoto ? modePilihan : document.getElementById('jenisIzin').value,
     latitude: pos.coords.latitude,
     longitude: pos.coords.longitude,

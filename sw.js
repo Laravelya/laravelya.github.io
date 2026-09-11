@@ -1,11 +1,9 @@
-const CACHE_NAME = "eranga-cache-v3";
+const CACHE_NAME = "eranga-cache-v4";
 
 const STATIC_ASSETS = [
   "./",
   "./index.html",
-  "./app.js",
-  "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css",
-  "https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"
+  "./app.js"
 ];
 
 // 1. INSTALL
@@ -42,6 +40,28 @@ self.addEventListener("activate", (e) => {
 // 3. FETCH
 self.addEventListener("fetch", (e) => {
   if (e.request.method !== "GET") return;
+
+  const requestUrl = new URL(e.request.url);
+  if (requestUrl.origin !== self.location.origin) return;
+
+  const isAppShell = e.request.mode === "navigate" ||
+    requestUrl.pathname.endsWith("/index.html") ||
+    requestUrl.pathname.endsWith("/app.js");
+
+  if (isAppShell) {
+    e.respondWith(
+      fetch(e.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.ok) {
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(e.request, responseToCache));
+          }
+          return networkResponse;
+        })
+        .catch(() => caches.match(e.request).then((cachedResponse) => cachedResponse || caches.match("./index.html")))
+    );
+    return;
+  }
 
   e.respondWith(
     caches.match(e.request).then((cachedResponse) => {
