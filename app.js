@@ -1,5 +1,5 @@
 // CONFIG
-const GAS_URL = "https://script.google.com/macros/s/AKfycbwYEFsmJm4hj0572k8GVpQi0cUOWDPgHwaRK9qeLQ50oyqcIWD4As8Wgp1p9EMazEZY-g/exec";
+const GAS_URL = "https://script.google.com/macros/s/AKfycbxOeuwWytm-qYqUoii_KesriNGUOUpOrpH5regiD30mOJM7kyz72AQPwHndAa2GZv1_/exec";
 const DAFTAR_BSSID_SEKOLAH = [
   "06:20:84:9a:42:1b",
   "06:20:84:aa:42:1b",
