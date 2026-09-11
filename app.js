@@ -40,6 +40,32 @@ function escapeHtml(value) {
     .replace(/'/g, '&#039;');
 }
 
+function normalizeFaceDescriptor(value) {
+  if (Array.isArray(value)) return value.length === 128 ? value : null;
+  if (typeof value !== 'string') return null;
+
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) && parsed.length === 128 ? parsed : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function hasRegisteredFace() {
+  return normalizeFaceDescriptor(currentUserData?.faceDescriptor) !== null;
+}
+
+function updateFaceRegistrationVisibility() {
+  const faceNotice = document.getElementById('faceRegistrationNotice');
+  const mainButtons = document.getElementById('mainButtons');
+  if (!faceNotice || !mainButtons) return;
+
+  const registered = hasRegisteredFace();
+  faceNotice.classList.toggle('hidden', registered);
+  mainButtons.classList.toggle('hidden', !registered);
+}
+
 // HELPER LOCAL CACHE STATUS
 function simpanStatusLokal(data) {
   if (!currentUserData) return;
@@ -216,6 +242,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   const savedUser = ambilSesi();
   if (savedUser?.sessionToken) {
+    savedUser.faceDescriptor = normalizeFaceDescriptor(savedUser.faceDescriptor);
     currentUserData = savedUser;
     showDashboard(currentUserData.nama);
   } else if (savedUser) {
@@ -253,7 +280,11 @@ async function login() {
     hideLoading();
 
     if (res.status === "success") {
-      currentUserData = { ...res.user, sessionToken: res.sessionToken };
+      currentUserData = {
+        ...res.user,
+        sessionToken: res.sessionToken,
+        faceDescriptor: normalizeFaceDescriptor(res.user?.faceDescriptor)
+      };
       simpanSesi(currentUserData);
       showDashboard(currentUserData.nama);
     } else {
@@ -362,13 +393,7 @@ function updateUIStatus(res) {
   const statusSpan = document.getElementById('textStatusAbsen');
   if (statusSpan) statusSpan.innerHTML = infoStatusHTML;
 
-  const faceNotice = document.getElementById('faceRegistrationNotice');
-  const mainButtons = document.getElementById('mainButtons');
-  const hasFaceDescriptor = Array.isArray(currentUserData?.faceDescriptor) && currentUserData.faceDescriptor.length === 128;
-  if (faceNotice && mainButtons) {
-    faceNotice.classList.toggle('hidden', hasFaceDescriptor);
-    mainButtons.classList.toggle('hidden', !hasFaceDescriptor);
-  }
+  updateFaceRegistrationVisibility();
 }
 
 function showDashboard(nama) {
@@ -411,9 +436,7 @@ function showDashboard(nama) {
     </div>
   `;
 
-  const hasFaceDescriptor = Array.isArray(currentUserData?.faceDescriptor) && currentUserData.faceDescriptor.length === 128;
-  document.getElementById('faceRegistrationNotice').classList.toggle('hidden', hasFaceDescriptor);
-  document.getElementById('mainButtons').classList.toggle('hidden', !hasFaceDescriptor);
+  updateFaceRegistrationVisibility();
 
   // 1. Tampilkan data dari cache lokal jika ada (0 ms delay)
   const statusLokal = ambilStatusLokal();
@@ -544,9 +567,7 @@ function batal() {
   stopCamera();
   document.getElementById('cameraArea').classList.add('hidden');
   document.getElementById('izinArea').classList.add('hidden');
-  const hasFaceDescriptor = Array.isArray(currentUserData?.faceDescriptor) && currentUserData.faceDescriptor.length === 128;
-  document.getElementById('mainButtons').classList.toggle('hidden', !hasFaceDescriptor);
-  document.getElementById('faceRegistrationNotice').classList.toggle('hidden', hasFaceDescriptor);
+  updateFaceRegistrationVisibility();
   document.getElementById('status').innerText = "";
   
   const faceOverlay = document.getElementById('faceOverlay');
