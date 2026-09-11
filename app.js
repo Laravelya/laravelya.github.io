@@ -620,7 +620,7 @@ function eksekusiAbsen() {
   setSubmitButtonState(true);
 
   showLoading("Mendapatkan lokasi GPS...");
-  document.getElementById('status').innerText = "Mendapatkan lokasi GPS...";
+  setProcessStatus("Mendapatkan lokasi GPS...");
   document.getElementById('status').style.color = "blue";
 
   if (navigator.geolocation) {
@@ -668,7 +668,7 @@ function eksekusiIzin() {
   setSubmitButtonState(true, true);
 
   showLoading("Mendapatkan lokasi GPS...");
-  document.getElementById('status').innerText = "Mengirim izin...";
+  setProcessStatus("Mengirim izin...");
 
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
@@ -694,7 +694,14 @@ function setSubmitButtonState(disabled, isIzin = false) {
   const btn = isIzin ? document.getElementById('btnKirimIzin') : document.getElementById('btnKirimAbsen');
   if (btn) {
     btn.disabled = disabled;
-    btn.innerText = disabled ? "MEMPROSES..." : (isIzin ? "KIRIM PERMOHONAN" : "KIRIM ABSEN");
+    if (disabled) {
+      btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin process-spinner" aria-hidden="true"></i> MEMPROSES...';
+    } else if (isIzin) {
+      btn.innerHTML = '<i class="fa-solid fa-file-pen" aria-hidden="true"></i> KIRIM PERMOHONAN';
+    } else {
+      const icon = modePilihan === 'Keluar' ? 'fa-right-from-bracket' : 'fa-right-to-bracket';
+      btn.innerHTML = `<i class="fa-solid ${icon}" aria-hidden="true"></i> KIRIM ABSEN`;
+    }
     btn.style.opacity = disabled ? "0.5" : "1";
   }
 }
@@ -704,6 +711,13 @@ function resetSubmitState() {
   setSubmitButtonState(false, false);
   setSubmitButtonState(false, true);
   document.getElementById('status').innerText = "";
+}
+
+function setProcessStatus(message) {
+  const statusEl = document.getElementById('status');
+  if (statusEl) {
+    statusEl.innerHTML = `<span class="status-processing"><i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i>${message}</span>`;
+  }
 }
 
 async function kirim(pos, adaFoto) {
@@ -721,7 +735,7 @@ async function kirim(pos, adaFoto) {
   }
 
   showLoading("Mengunggah foto & memvalidasi data...");
-  document.getElementById('status').innerText = "Mengunggah foto & memvalidasi data ke server...";
+  setProcessStatus("Mengunggah foto & memvalidasi data ke server...");
 
   let fotoBase64 = "";
   if (adaFoto) {
