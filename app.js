@@ -19,6 +19,7 @@ let statusSyncPromise = null;
 let livenessConfirmCount = 0;
 let isFaceVerified = false;
 let currentFaceDescriptor = null;
+let lastDashboardDateKey = null;
 const LIVENESS_REQUIRED_FRAMES = 3;
 const FACE_MATCH_THRESHOLD = 0.5;
 
@@ -404,6 +405,7 @@ function showDashboard(nama) {
   const wita = new Date(utc + (3600000 * 8));
   const namaHari = getHariIndonesia(wita);
   const tanggalHariIni = wita.toISOString().split('T')[0];
+  lastDashboardDateKey = tanggalHariIni;
 
   const userInfoEl = document.getElementById('userInfo');
   userInfoEl.innerHTML = `
@@ -520,6 +522,16 @@ function updateClock() {
   const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
   const wita = new Date(utc + (3600000 * 8));
   document.getElementById('clock').innerText = `${String(wita.getHours()).padStart(2,'0')}:${String(wita.getMinutes()).padStart(2,'0')}:${String(wita.getSeconds()).padStart(2,'0')} WITA`;
+
+  if (!currentUserData?.nama || !document.getElementById('dashboardSection')) return;
+
+  const currentDateKey = wita.toISOString().split('T')[0];
+  if (lastDashboardDateKey && lastDashboardDateKey !== currentDateKey) {
+    lastDashboardDateKey = currentDateKey;
+    if (!document.getElementById('dashboardSection').classList.contains('hidden')) {
+      showDashboard(currentUserData.nama);
+    }
+  }
 }
 setInterval(updateClock, 1000);
 
