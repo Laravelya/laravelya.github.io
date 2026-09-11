@@ -715,6 +715,12 @@ async function jalankanLivenessDetection(videoEl, statusEl, btnKirim) {
               ? '<i class="fa-solid fa-user-plus" aria-hidden="true"></i> SIMPAN WAJAH'
               : '<i class="fa-solid fa-paper-plane" aria-hidden="true"></i> KIRIM ABSEN';
             btnKirim.classList.remove('hidden');
+            const cameraActions = document.getElementById('cameraActions');
+            if (cameraActions) {
+              requestAnimationFrame(() => {
+                cameraActions.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              });
+            }
             return;
           }
           statusEl.innerText = "Senyum terdeteksi. Pertahankan senyum...";

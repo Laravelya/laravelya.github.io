@@ -165,6 +165,7 @@
         .liveness-badge { margin: 0 auto 14px; padding: 11px 14px; border: 1px solid var(--line); border-radius: 10px; background: #f5f8f8; color: var(--muted); font-size: 13px; font-weight: 700; line-height: 1.4; }
         #cameraArea h4, #izinArea h4 { margin: 0 0 14px; color: var(--ink) !important; font-size: 18px; }
         #cameraArea .btn-gray, #izinArea .btn-gray { margin-top: 10px; }
+        #cameraActions { scroll-margin-top: 18px; }
         #izinArea { max-width: 520px; margin: 0 auto; }
         #izinArea select, #izinArea textarea { padding: 12px 14px; font-size: 14px; }
         #izinArea textarea { min-height: 100px; resize: vertical; }
@@ -276,8 +277,10 @@
             <canvas id="canvas"></canvas>
             <p id="livenessStatus" class="liveness-badge">Kamera aktif. Posisikan wajah Anda...</p>
             
-            <button id="btnKirimAbsen" class="dashboard-btn btn-green hidden" onclick="eksekusiAbsen()">KIRIM ABSEN</button>
-            <button class="dashboard-btn btn-gray" onclick="batal()">Batal</button>
+            <div id="cameraActions">
+                <button id="btnKirimAbsen" class="dashboard-btn btn-green hidden" onclick="eksekusiAbsen()">KIRIM ABSEN</button>
+                <button class="dashboard-btn btn-gray" onclick="batal()">Batal</button>
+            </div>
         </div>
 
         <!-- FORM IZIN/SAKIT -->
