@@ -20,6 +20,7 @@ let livenessConfirmCount = 0;
 let isFaceVerified = false;
 let currentFaceDescriptor = null;
 let lastDashboardDateKey = null;
+let lastCapturedPhotoDataUrl = "";
 const LIVENESS_REQUIRED_FRAMES = 3;
 const FACE_MATCH_THRESHOLD = 0.5;
 
@@ -659,6 +660,20 @@ async function startCamera() {
 }
 
 // LIVENESS DETECTION (NON-OVERLAPPING RECURSIVE LOOP)
+function ambilFrameKameraUntukFoto(videoEl) {
+  const canvas = document.getElementById('canvas');
+  if (!videoEl || !canvas || !videoEl.videoWidth || !videoEl.videoHeight) return "";
+
+  const maxWidth = 640;
+  const scale = maxWidth / videoEl.videoWidth;
+  canvas.width = maxWidth;
+  canvas.height = videoEl.videoHeight * scale;
+
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL('image/jpeg', 0.6);
+}
+
 async function jalankanLivenessDetection(videoEl, statusEl, btnKirim) {
   isDetectingFace = true;
   const faceOverlay = document.getElementById('faceOverlay');
@@ -687,6 +702,7 @@ async function jalankanLivenessDetection(videoEl, statusEl, btnKirim) {
             isLivenessPassed = true;
             isFaceVerified = true;
             currentFaceDescriptor = Array.from(detection.descriptor);
+            lastCapturedPhotoDataUrl = ambilFrameKameraUntukFoto(videoEl);
             isDetectingFace = false;
             statusEl.innerText = modePilihan === "DaftarWajah"
               ? "Wajah siap didaftarkan. Silakan tekan tombol di bawah."
@@ -941,16 +957,11 @@ async function kirim(pos, adaFoto) {
   let fotoBase64 = "";
   if (adaFoto) {
     const v = document.getElementById('video');
-    const c = document.getElementById('canvas');
-
-    const maxWidth = 640;
-    const scale = maxWidth / v.videoWidth;
-    c.width = maxWidth;
-    c.height = v.videoHeight * scale;
-
-    const ctx = c.getContext('2d');
-    ctx.drawImage(v, 0, 0, c.width, c.height);
-    fotoBase64 = c.toDataURL('image/jpeg', 0.6);
+    if (lastCapturedPhotoDataUrl) {
+      fotoBase64 = lastCapturedPhotoDataUrl;
+    } else if (v) {
+      fotoBase64 = ambilFrameKameraUntukFoto(v);
+    }
   }
 
   const payload = {
