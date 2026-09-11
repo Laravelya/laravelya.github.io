@@ -19,15 +19,11 @@ let isSubmitting = false;
 
 // HELPER LOADING OVERLAY BLUR
 function showLoading(pesan = "Memproses data...") {
-  const overlay = document.getElementById('loadingOverlay');
-  const textEl = document.getElementById('loadingText');
-  if (textEl) textEl.innerText = pesan;
-  if (overlay) overlay.classList.remove('hidden');
+  // Loading overlay dinonaktifkan agar proses tidak menghalangi tampilan aplikasi.
 }
 
 function hideLoading() {
-  const overlay = document.getElementById('loadingOverlay');
-  if (overlay) overlay.classList.add('hidden');
+  // Loading overlay dinonaktifkan agar proses tidak menghalangi tampilan aplikasi.
 }
 
 // HELPER LOCAL CACHE STATUS
