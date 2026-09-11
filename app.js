@@ -18,6 +18,7 @@ let isSubmitting = false;
 let statusSyncPromise = null;
 let livenessConfirmCount = 0;
 let isFaceVerified = false;
+let currentFaceDescriptor = null;
 const LIVENESS_REQUIRED_FRAMES = 3;
 const FACE_MATCH_THRESHOLD = 0.5;
 
@@ -360,6 +361,14 @@ function updateUIStatus(res) {
 
   const statusSpan = document.getElementById('textStatusAbsen');
   if (statusSpan) statusSpan.innerHTML = infoStatusHTML;
+
+  const faceNotice = document.getElementById('faceRegistrationNotice');
+  const mainButtons = document.getElementById('mainButtons');
+  const hasFaceDescriptor = Array.isArray(currentUserData?.faceDescriptor) && currentUserData.faceDescriptor.length === 128;
+  if (faceNotice && mainButtons) {
+    faceNotice.classList.toggle('hidden', hasFaceDescriptor);
+    mainButtons.classList.toggle('hidden', !hasFaceDescriptor);
+  }
 }
 
 function showDashboard(nama) {
@@ -401,6 +410,10 @@ function showDashboard(nama) {
       </div>
     </div>
   `;
+
+  const hasFaceDescriptor = Array.isArray(currentUserData?.faceDescriptor) && currentUserData.faceDescriptor.length === 128;
+  document.getElementById('faceRegistrationNotice').classList.toggle('hidden', hasFaceDescriptor);
+  document.getElementById('mainButtons').classList.toggle('hidden', !hasFaceDescriptor);
 
   // 1. Tampilkan data dari cache lokal jika ada (0 ms delay)
   const statusLokal = ambilStatusLokal();
@@ -527,14 +540,26 @@ function batal() {
   isLivenessPassed = false;
   isFaceVerified = false;
   livenessConfirmCount = 0;
+  currentFaceDescriptor = null;
   stopCamera();
   document.getElementById('cameraArea').classList.add('hidden');
   document.getElementById('izinArea').classList.add('hidden');
-  document.getElementById('mainButtons').classList.remove('hidden');
+  const hasFaceDescriptor = Array.isArray(currentUserData?.faceDescriptor) && currentUserData.faceDescriptor.length === 128;
+  document.getElementById('mainButtons').classList.toggle('hidden', !hasFaceDescriptor);
+  document.getElementById('faceRegistrationNotice').classList.toggle('hidden', hasFaceDescriptor);
   document.getElementById('status').innerText = "";
   
   const faceOverlay = document.getElementById('faceOverlay');
   if (faceOverlay) faceOverlay.className = "face-overlay";
+}
+
+function bukaPendaftaranWajah() {
+  modePilihan = "DaftarWajah";
+  document.getElementById('faceRegistrationNotice').classList.add('hidden');
+  document.getElementById('mainButtons').classList.add('hidden');
+  document.getElementById('menuTitle').innerText = "Daftarkan Wajah";
+  document.getElementById('cameraArea').classList.remove('hidden');
+  startCamera();
 }
 
 async function loadFaceAPIModels() {
@@ -557,6 +582,7 @@ async function startCamera() {
     isLivenessPassed = false;
     isFaceVerified = false;
     livenessConfirmCount = 0;
+    currentFaceDescriptor = null;
     const btnKirim = document.getElementById('btnKirimAbsen');
     if (btnKirim) btnKirim.classList.add('hidden');
 
@@ -577,7 +603,7 @@ async function startCamera() {
       statusEl.style.color = "red";
     }
 
-    if (!Array.isArray(currentUserData?.faceDescriptor) || currentUserData.faceDescriptor.length !== 128) {
+    if (modePilihan !== "DaftarWajah" && (!Array.isArray(currentUserData?.faceDescriptor) || currentUserData.faceDescriptor.length !== 128)) {
       throw new Error("Descriptor wajah akun belum tersedia.");
     }
 
@@ -616,8 +642,7 @@ async function jalankanLivenessDetection(videoEl, statusEl, btnKirim) {
         .withFaceDescriptors();
       if (detections.length === 1) {
         const detection = detections[0];
-        const faceDistance = faceapi.euclideanDistance(currentUserData.faceDescriptor, detection.descriptor);
-        const isFaceMatched = faceDistance <= FACE_MATCH_THRESHOLD;
+        const isFaceMatched = modePilihan === "DaftarWajah" || faceapi.euclideanDistance(currentUserData.faceDescriptor, detection.descriptor) <= FACE_MATCH_THRESHOLD;
 
         if (!isFaceMatched) {
           livenessConfirmCount = 0;
@@ -630,10 +655,16 @@ async function jalankanLivenessDetection(videoEl, statusEl, btnKirim) {
           if (livenessConfirmCount >= LIVENESS_REQUIRED_FRAMES) {
             isLivenessPassed = true;
             isFaceVerified = true;
+            currentFaceDescriptor = Array.from(detection.descriptor);
             isDetectingFace = false;
-            statusEl.innerText = "Wajah terverifikasi. Liveness sukses, silakan lanjutkan absen.";
+            statusEl.innerText = modePilihan === "DaftarWajah"
+              ? "Wajah siap didaftarkan. Silakan tekan tombol di bawah."
+              : "Wajah terverifikasi. Liveness sukses, silakan lanjutkan absen.";
             statusEl.style.color = "green";
             if (faceOverlay) faceOverlay.className = "face-overlay success";
+            btnKirim.innerHTML = modePilihan === "DaftarWajah"
+              ? '<i class="fa-solid fa-user-plus" aria-hidden="true"></i> SIMPAN WAJAH'
+              : '<i class="fa-solid fa-paper-plane" aria-hidden="true"></i> KIRIM ABSEN';
             btnKirim.classList.remove('hidden');
             return;
           }
@@ -686,6 +717,11 @@ function stopCamera() {
 function eksekusiAbsen() {
   if (isSubmitting) return;
 
+  if (modePilihan === "DaftarWajah") {
+    daftarWajah();
+    return;
+  }
+
   if (!isBssidValid()) {
     Swal.fire({
       icon: 'error',
@@ -728,6 +764,59 @@ function eksekusiAbsen() {
       confirmButtonColor: '#dc3545'
     });
     resetSubmitState();
+  }
+}
+
+async function daftarWajah() {
+  if (isSubmitting || !isLivenessPassed || !isFaceVerified || !currentFaceDescriptor) return;
+
+  isSubmitting = true;
+  const btnKirim = document.getElementById('btnKirimAbsen');
+  if (btnKirim) {
+    btnKirim.disabled = true;
+    btnKirim.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin process-spinner" aria-hidden="true"></i> MENYIMPAN...';
+  }
+  setProcessStatus("Menyimpan descriptor wajah...");
+
+  try {
+    const response = await fetch(GAS_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: "daftar_wajah",
+        sessionToken: currentUserData.sessionToken,
+        faceDescriptor: currentFaceDescriptor
+      })
+    });
+    const res = await response.json();
+
+    if (res.status !== "success") {
+      throw new Error(res.message || "Gagal mendaftarkan wajah.");
+    }
+
+    currentUserData.faceDescriptor = res.faceDescriptor;
+    simpanSesi(currentUserData);
+    await Swal.fire({
+      icon: 'success',
+      title: 'Wajah Berhasil Didaftarkan',
+      text: 'Sekarang Anda dapat melakukan absensi.',
+      confirmButtonColor: '#087f68'
+    });
+    batal();
+    showDashboard(currentUserData.nama);
+  } catch (error) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Pendaftaran Gagal',
+      text: error.message || 'Gagal menyimpan descriptor wajah.',
+      confirmButtonColor: '#c84545'
+    });
+  } finally {
+    isSubmitting = false;
+    if (btnKirim) {
+      btnKirim.disabled = false;
+      btnKirim.innerHTML = '<i class="fa-solid fa-user-plus" aria-hidden="true"></i> SIMPAN WAJAH';
+    }
+    document.getElementById('status').innerText = "";
   }
 }
 

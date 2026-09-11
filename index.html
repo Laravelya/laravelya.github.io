@@ -117,6 +117,10 @@
         #dashboardSection { text-align: center; }
         #dashboardSection > h3 { margin: 0 0 22px; color: var(--ink) !important; font-size: clamp(22px, 4vw, 30px); letter-spacing: -.03em; }
         #displayUser { color: var(--brand); }
+        .face-registration-notice { margin-bottom: 20px; padding: 18px; border: 1px solid #f0d694; border-radius: 14px; background: #fff8e6; color: #624b16; text-align: left; }
+        .face-registration-notice strong { display: block; margin-bottom: 6px; color: #4f3d12; font: 700 15px 'Plus Jakarta Sans', sans-serif; }
+        .face-registration-notice p { margin: 0 0 14px; font-size: 13px; line-height: 1.55; }
+        .face-registration-notice .dashboard-btn { color: #5b3a00; background: #f2c14e; }
         .user-info { position: relative; margin-bottom: 24px; padding: 20px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); color: var(--ink); text-align: left; box-shadow: 0 10px 24px rgba(20, 42, 59, .06); }
         .profile-heading { display: flex; align-items: center; gap: 12px; padding-bottom: 17px; border-bottom: 1px solid #edf1f1; }
         .profile-icon { width: 40px; height: 40px; display: grid; place-items: center; flex: 0 0 40px; border-radius: 11px; color: var(--brand); background: var(--brand-soft); }
@@ -235,6 +239,13 @@
     <div id="dashboardSection" class="hidden">
         <h3 style="color: #2c3e50; margin-top:0;">Halo, <span id="displayUser"></span></h3>
         <div id="userInfo" class="user-info"></div>
+        <div id="faceRegistrationNotice" class="face-registration-notice hidden">
+            <strong><i class="fa-solid fa-user-shield" aria-hidden="true"></i> Daftarkan wajah Anda</strong>
+            <p>Wajah perlu didaftarkan satu kali sebelum dapat melakukan absensi masuk dan keluar.</p>
+            <button id="btnDaftarWajah" class="dashboard-btn" onclick="bukaPendaftaranWajah()">
+                <i class="fa-solid fa-camera" aria-hidden="true"></i> DAFTARKAN WAJAH
+            </button>
+        </div>
         <div id="clock">00:00:00 WITA</div>
 
         <div id="mainButtons">
