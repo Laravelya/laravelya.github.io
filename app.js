@@ -723,7 +723,7 @@ async function kirim(pos, adaFoto) {
     const response = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
     const res = await response.json();
 
-    // Sembunyikan overlay dan reset state SEBELUM menampilkan modal SweetAlert2
+    // Tutup overlay sebelum menampilkan notifikasi hasil pengiriman.
     hideLoading();
     resetSubmitState();
 
@@ -753,5 +753,8 @@ async function kirim(pos, adaFoto) {
       text: 'Gagal terhubung ke server.',
       confirmButtonColor: '#dc3545'
     });
+  } finally {
+    hideLoading();
+    resetSubmitState();
   }
 }
