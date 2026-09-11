@@ -842,7 +842,14 @@ async function daftarWajah() {
       throw new Error(res.message || "Gagal mendaftarkan wajah.");
     }
 
-    currentUserData.faceDescriptor = res.faceDescriptor;
+    const registeredDescriptor = normalizeFaceDescriptor(res.faceDescriptor);
+    if (!registeredDescriptor) {
+      throw new Error("Server tidak mengembalikan descriptor wajah yang valid.");
+    }
+
+    currentUserData.faceDescriptor = registeredDescriptor;
+    currentFaceDescriptor = null;
+    modePilihan = "";
     simpanSesi(currentUserData);
     await Swal.fire({
       icon: 'success',
