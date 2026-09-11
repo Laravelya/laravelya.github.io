@@ -177,14 +177,12 @@ function terimaDataWiFiFromAndroid(ssid, bssid) {
 
 // SESSION MANAGEMENT
 function simpanSesi(userData) {
-  const rememberMe = document.getElementById('rememberMe')?.checked;
   const sessionStr = JSON.stringify(userData);
 
-  if (rememberMe) {
-    localStorage.setItem("session_user", sessionStr);
-  } else {
-    sessionStorage.setItem("session_user", sessionStr);
-  }
+  // Untuk WebView Android, session harus tetap ada meski webview ditutup.
+  // Jangan hanya memakai sessionStorage karena itu akan hilang saat tab atau webview ditutup.
+  localStorage.setItem("session_user", sessionStr);
+  sessionStorage.setItem("session_user", sessionStr);
 }
 
 function ambilSesi() {
