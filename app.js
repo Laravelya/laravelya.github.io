@@ -575,6 +575,7 @@ function batal() {
   isFaceVerified = false;
   livenessConfirmCount = 0;
   currentFaceDescriptor = null;
+  lastCapturedPhotoDataUrl = "";
   stopCamera();
   document.getElementById('cameraArea').classList.add('hidden');
   document.getElementById('izinArea').classList.add('hidden');
@@ -615,6 +616,7 @@ async function startCamera() {
     isFaceVerified = false;
     livenessConfirmCount = 0;
     currentFaceDescriptor = null;
+    lastCapturedPhotoDataUrl = "";
     const btnKirim = document.getElementById('btnKirimAbsen');
     if (btnKirim) btnKirim.classList.add('hidden');
 
@@ -961,6 +963,18 @@ async function kirim(pos, adaFoto) {
       fotoBase64 = lastCapturedPhotoDataUrl;
     } else if (v) {
       fotoBase64 = ambilFrameKameraUntukFoto(v);
+    }
+
+    if (!fotoBase64) {
+      hideLoading();
+      resetSubmitState();
+      Swal.fire({
+        icon: 'warning',
+        title: 'Foto Belum Siap',
+        text: 'Foto wajah belum berhasil diambil. Silakan ulangi proses absen.',
+        confirmButtonColor: '#ffc107'
+      });
+      return;
     }
   }
 
