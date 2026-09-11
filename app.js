@@ -17,7 +17,9 @@ let modelsLoaded = false;
 let isSubmitting = false;
 let statusSyncPromise = null;
 let livenessConfirmCount = 0;
+let isFaceVerified = false;
 const LIVENESS_REQUIRED_FRAMES = 3;
+const FACE_MATCH_THRESHOLD = 0.5;
 
 // HELPER LOADING OVERLAY BLUR
 function showLoading(pesan = "Memproses data...") {
@@ -523,6 +525,7 @@ async function bukaForm(jenis) {
 function batal() {
   isDetectingFace = false;
   isLivenessPassed = false;
+  isFaceVerified = false;
   livenessConfirmCount = 0;
   stopCamera();
   document.getElementById('cameraArea').classList.add('hidden');
@@ -542,7 +545,9 @@ async function loadFaceAPIModels() {
   const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
   await Promise.all([
     faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
-    faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL)
+    faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL),
+    faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+    faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
   ]);
   modelsLoaded = true;
 }
@@ -550,6 +555,7 @@ async function loadFaceAPIModels() {
 async function startCamera() {
   try {
     isLivenessPassed = false;
+    isFaceVerified = false;
     livenessConfirmCount = 0;
     const btnKirim = document.getElementById('btnKirimAbsen');
     if (btnKirim) btnKirim.classList.add('hidden');
@@ -571,6 +577,10 @@ async function startCamera() {
       statusEl.style.color = "red";
     }
 
+    if (!Array.isArray(currentUserData?.faceDescriptor) || currentUserData.faceDescriptor.length !== 128) {
+      throw new Error("Descriptor wajah akun belum tersedia.");
+    }
+
     streamRef = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
     const videoEl = document.getElementById('video');
     videoEl.srcObject = streamRef;
@@ -578,10 +588,13 @@ async function startCamera() {
       if (statusEl && btnKirim) jalankanLivenessDetection(videoEl, statusEl, btnKirim);
     };
   } catch (e) {
+    const isMissingDescriptor = e.message === "Descriptor wajah akun belum tersedia.";
     Swal.fire({
       icon: 'error',
-      title: 'Kamera Gagal',
-      text: 'Gagal membuka kamera atau memuat model deteksi wajah.',
+      title: isMissingDescriptor ? 'Wajah Belum Terdaftar' : 'Kamera Gagal',
+      text: isMissingDescriptor
+        ? 'Descriptor wajah akun belum tersedia. Hubungi administrator untuk mendaftarkan wajah Anda.'
+        : 'Gagal membuka kamera atau memuat model deteksi wajah.',
       confirmButtonColor: '#dc3545'
     });
     batal();
@@ -597,15 +610,28 @@ async function jalankanLivenessDetection(videoEl, statusEl, btnKirim) {
     if (!isDetectingFace || isLivenessPassed) return;
 
     try {
-      const detections = await faceapi.detectAllFaces(videoEl, new faceapi.TinyFaceDetectorOptions()).withFaceExpressions();
+      const detections = await faceapi.detectAllFaces(videoEl, new faceapi.TinyFaceDetectorOptions())
+        .withFaceLandmarks()
+        .withFaceExpressions()
+        .withFaceDescriptors();
       if (detections.length === 1) {
         const detection = detections[0];
-        if (detection.expressions.happy > 0.7) {
+        const faceDistance = faceapi.euclideanDistance(currentUserData.faceDescriptor, detection.descriptor);
+        const isFaceMatched = faceDistance <= FACE_MATCH_THRESHOLD;
+
+        if (!isFaceMatched) {
+          livenessConfirmCount = 0;
+          isFaceVerified = false;
+          statusEl.innerText = "Wajah tidak sesuai dengan akun yang login.";
+          statusEl.style.color = "#c84545";
+          if (faceOverlay) faceOverlay.className = "face-overlay warning";
+        } else if (detection.expressions.happy > 0.7) {
           livenessConfirmCount += 1;
           if (livenessConfirmCount >= LIVENESS_REQUIRED_FRAMES) {
             isLivenessPassed = true;
+            isFaceVerified = true;
             isDetectingFace = false;
-            statusEl.innerText = "Liveness Test Sukses! Silakan Lanjutkan Absen.";
+            statusEl.innerText = "Wajah terverifikasi. Liveness sukses, silakan lanjutkan absen.";
             statusEl.style.color = "green";
             if (faceOverlay) faceOverlay.className = "face-overlay success";
             btnKirim.classList.remove('hidden');
@@ -812,6 +838,7 @@ async function kirim(pos, adaFoto) {
     sessionToken: currentUserData.sessionToken,
     bssid: bssidPengguna,
     livenessPassed: isLivenessPassed,
+    faceVerified: isFaceVerified,
     jenis: adaFoto ? modePilihan : document.getElementById('jenisIzin').value,
     latitude: pos.coords.latitude,
     longitude: pos.coords.longitude,
