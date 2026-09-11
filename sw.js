@@ -1,4 +1,4 @@
-const CACHE_NAME = "eranga-cache-v4";
+const CACHE_NAME = "eranga-cache-v5";
 
 const STATIC_ASSETS = [
   "./",
@@ -30,11 +30,18 @@ self.addEventListener("activate", (e) => {
             console.log(`[SW] Menghapus cache lama: ${key}`);
             return caches.delete(key);
           }
+          return null;
         })
       );
     })
   );
   self.clients.claim();
+});
+
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
 });
 
 // 3. FETCH

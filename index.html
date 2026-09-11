@@ -61,6 +61,15 @@
             box-shadow: var(--shadow);
             display: flex;
             flex-direction: column;
+            justify-content: center;
+        }
+        #loginSection {
+            width: min(100%, 440px);
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            flex: 1;
         }
         .login-header { margin-bottom: 34px; }
         .brand-row { display: flex; align-items: center; gap: 12px; margin-bottom: 30px; }
@@ -309,7 +318,7 @@
 <script>
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./sw.js')
+            navigator.serviceWorker.register('./sw.js?v=' + Date.now(), { scope: './', updateViaCache: 'none', cache: 'reload' })
                 .then(() => console.log('Service Worker Terpasang!'))
                 .catch(err => console.error('SW Gagal:', err));
         });
