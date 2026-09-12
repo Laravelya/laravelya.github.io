@@ -219,6 +219,14 @@ function cekKoneksiInternet() {
 window.addEventListener("online", () => location.reload());
 window.addEventListener("offline", cekKoneksiInternet);
 
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('assets/js/sw.js?v=' + Date.now(), { scope: './', updateViaCache: 'none', cache: 'reload' })
+      .then(() => console.log('Service Worker Terpasang!'))
+      .catch(err => console.error('SW Gagal:', err));
+  });
+}
+
 // INIT POINT
 window.addEventListener('DOMContentLoaded', () => {
   cekKoneksiInternet();
@@ -359,8 +367,8 @@ function updateUIStatus(res) {
   const btnIzin = document.querySelector("button[onclick*=\"bukaForm('Izin')\"]");
 
   if (statusIzin) {
-    infoStatusHTML = `<span style="color: #ffc107; font-weight: bold;">${escapeHtml(statusIzin)} (Izin Aktif)</span><br>
-      <button onclick="batalkanIzin()" style="margin-top:8px; padding:6px 12px; background-color:#dc3545; color:white; border:none; border-radius:6px; font-size:12px; cursor:pointer;">
+    infoStatusHTML = `<span class="status-izin">${escapeHtml(statusIzin)} (Izin Aktif)</span><br>
+      <button onclick="batalkanIzin()" class="cancel-leave-button">
         <i class="fa-solid fa-rotate-left"></i> Batalkan Izin/Sakit
       </button>`;
 
@@ -368,12 +376,12 @@ function updateUIStatus(res) {
     if (btnKeluar) btnKeluar.classList.add("hidden");
     if (btnIzin) btnIzin.classList.add("hidden");
   } else {
-    let textMasukColor = statusMasuk === "Sudah" ? "#198754" : "#d9534f";
-    let textKeluarColor = statusKeluar === "Sudah" ? "#198754" : "#d9534f";
+    let textMasukClass = statusMasuk === "Sudah" ? "status-success" : "status-offline";
+    let textKeluarClass = statusKeluar === "Sudah" ? "status-success" : "status-offline";
     let labelMasuk = statusMasuk === "Sudah" ? `Sudah (${jamMasuk || 'Terekam'})` : "Belum";
     let labelKeluar = statusKeluar === "Sudah" ? `Sudah (${jamKeluar || 'Terekam'})` : "Belum";
 
-    infoStatusHTML = `Masuk: <span style="color: ${textMasukColor}; font-weight: bold;">${escapeHtml(labelMasuk)}</span> | Keluar: <span style="color: ${textKeluarColor}; font-weight: bold;">${escapeHtml(labelKeluar)}</span>`;
+    infoStatusHTML = `Masuk: <span class="${textMasukClass} status-value">${escapeHtml(labelMasuk)}</span> | Keluar: <span class="${textKeluarClass} status-value">${escapeHtml(labelKeluar)}</span>`;
 
     if (statusMasuk === "Belum") {
       if (btnMasuk) btnMasuk.classList.remove("hidden");
@@ -455,7 +463,7 @@ function showDashboard(nama) {
       console.error("Gagal sinkronisasi status dari server:", e);
       const statusSpan = document.getElementById('textStatusAbsen');
       if (!statusLokal && statusSpan) {
-        statusSpan.innerHTML = `<span style="color:#d9534f;"><i class="fa-solid fa-wifi"></i> Koneksi lambat / Terputus</span>`;
+        statusSpan.innerHTML = `<span class="status-offline"><i class="fa-solid fa-wifi"></i> Koneksi lambat / Terputus</span>`;
       }
     });
 }
@@ -627,14 +635,14 @@ async function startCamera() {
 
     if (statusEl) {
       statusEl.innerText = "Memuat model deteksi...";
-      statusEl.style.color = "blue";
+      statusEl.className = "liveness-badge status-blue";
     }
 
     await loadFaceAPIModels();
 
     if (statusEl) {
       statusEl.innerText = "Kamera aktif. Posisikan wajah Anda...";
-      statusEl.style.color = "red";
+      statusEl.className = "liveness-badge status-red";
     }
 
     if (modePilihan !== "DaftarWajah" && (!Array.isArray(currentUserData?.faceDescriptor) || currentUserData.faceDescriptor.length !== 128)) {
@@ -696,7 +704,7 @@ async function jalankanLivenessDetection(videoEl, statusEl, btnKirim) {
           livenessConfirmCount = 0;
           isFaceVerified = false;
           statusEl.innerText = "Wajah tidak sesuai dengan akun yang login.";
-          statusEl.style.color = "#c84545";
+          statusEl.className = "liveness-badge status-danger";
           if (faceOverlay) faceOverlay.className = "face-overlay warning";
         } else if (detection.expressions.happy > 0.7) {
           livenessConfirmCount += 1;
@@ -709,7 +717,7 @@ async function jalankanLivenessDetection(videoEl, statusEl, btnKirim) {
             statusEl.innerText = modePilihan === "DaftarWajah"
               ? "Wajah siap didaftarkan. Silakan tekan tombol di bawah."
               : "Wajah terverifikasi. Liveness sukses, silakan lanjutkan absen.";
-            statusEl.style.color = "green";
+            statusEl.className = "liveness-badge status-success";
             if (faceOverlay) faceOverlay.className = "face-overlay success";
             btnKirim.innerHTML = modePilihan === "DaftarWajah"
               ? '<i class="fa-solid fa-user-plus" aria-hidden="true"></i> SIMPAN WAJAH'
@@ -724,23 +732,23 @@ async function jalankanLivenessDetection(videoEl, statusEl, btnKirim) {
             return;
           }
           statusEl.innerText = "Senyum terdeteksi. Pertahankan senyum...";
-          statusEl.style.color = "#ff9800";
+          statusEl.className = "liveness-badge status-warning";
           if (faceOverlay) faceOverlay.className = "face-overlay warning";
         } else {
           livenessConfirmCount = 0;
           statusEl.innerText = "Wajah terdeteksi. Silakan SENYUM LEBAR untuk absen!";
-          statusEl.style.color = "#ff9800";
+          statusEl.className = "liveness-badge status-warning";
           if (faceOverlay) faceOverlay.className = "face-overlay warning";
         }
       } else if (detections.length > 1) {
         livenessConfirmCount = 0;
         statusEl.innerText = "Lebih dari satu wajah terdeteksi. Pastikan hanya satu orang di kamera.";
-        statusEl.style.color = "#c84545";
+        statusEl.className = "liveness-badge status-danger";
         if (faceOverlay) faceOverlay.className = "face-overlay warning";
       } else {
         livenessConfirmCount = 0;
         statusEl.innerText = "Wajah TIDAK terdeteksi. Posisikan wajah ke kamera.";
-        statusEl.style.color = "red";
+        statusEl.className = "liveness-badge status-red";
         if (faceOverlay) faceOverlay.className = "face-overlay";
       }
     } catch (err) {
@@ -748,7 +756,7 @@ async function jalankanLivenessDetection(videoEl, statusEl, btnKirim) {
       isDetectingFace = false;
       livenessConfirmCount = 0;
       statusEl.innerText = "Deteksi wajah gagal. Silakan tutup lalu buka kamera kembali.";
-      statusEl.style.color = "#c84545";
+      statusEl.className = "liveness-badge status-danger";
       btnKirim.classList.add('hidden');
       return;
     }
@@ -793,7 +801,7 @@ function eksekusiAbsen() {
 
   showLoading("Mendapatkan lokasi GPS...");
   setProcessStatus("Mendapatkan lokasi GPS...");
-  document.getElementById('status').style.color = "blue";
+  document.getElementById('status').classList.add("status-blue");
 
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
@@ -934,7 +942,7 @@ function setSubmitButtonState(disabled, isIzin = false) {
       const icon = modePilihan === 'Keluar' ? 'fa-right-from-bracket' : 'fa-right-to-bracket';
       btn.innerHTML = `<i class="fa-solid ${icon}" aria-hidden="true"></i> KIRIM ABSEN`;
     }
-    btn.style.opacity = disabled ? "0.5" : "1";
+    btn.classList.toggle("is-processing", disabled);
   }
 }
 
