@@ -21,11 +21,16 @@ let isFaceVerified = false;
 let currentFaceDescriptor = null;
 let lastDashboardDateKey = null;
 let lastCapturedPhotoDataUrl = "";
+let smileScoreHistory = [];
+let smileMouthBaseline = null;
 const LIVENESS_REQUIRED_FRAMES = 3;
 const FACE_MATCH_THRESHOLD = 0.48;
 const FACE_DETECTION_INTERVAL_MS = 220;
 const FACE_DETECTOR_INPUT_SIZE = 320;
 const FACE_DETECTOR_SCORE_THRESHOLD = 0.5;
+const SMILE_SCORE_THRESHOLD = 0.3;
+const SMILE_FRAME_WINDOW = 5;
+const SMILE_REQUIRED_FRAMES = 3;
 
 // HELPER LOADING OVERLAY BLUR
 function showLoading(pesan = "Memproses data...") {
@@ -55,6 +60,43 @@ function normalizeFaceDescriptor(value) {
   } catch (e) {
     return null;
   }
+}
+
+function hitungSinyalSenyum(detection) {
+  const expressions = detection?.expressions;
+  const landmarks = detection?.landmarks;
+  const expressionScore = Number(expressions?.happy) || 0;
+  const mouth = landmarks?.getMouth?.();
+  const leftEye = landmarks?.getLeftEye?.();
+  const rightEye = landmarks?.getRightEye?.();
+
+  if (!mouth || mouth.length < 8 || !leftEye?.length || !rightEye?.length) {
+    return expressionScore;
+  }
+
+  const jarak = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+  const eyeDistance = jarak(leftEye[0], rightEye[3]);
+  const mouthWidth = jarak(mouth[0], mouth[6]);
+  const mouthWidthRatio = eyeDistance > 0 ? mouthWidth / eyeDistance : 0;
+
+  if (smileMouthBaseline === null && expressionScore < 0.3) {
+    smileMouthBaseline = mouthWidthRatio;
+  } else if (smileMouthBaseline !== null && expressionScore < 0.3) {
+    smileMouthBaseline = (smileMouthBaseline * 0.9) + (mouthWidthRatio * 0.1);
+  }
+
+  const mouthExpansion = smileMouthBaseline > 0
+    ? Math.max(0, Math.min(1, (mouthWidthRatio / smileMouthBaseline - 1) / 0.2))
+    : 0;
+
+  return Math.max(expressionScore, mouthExpansion * 0.75);
+}
+
+function catatSinyalSenyum(score) {
+  smileScoreHistory.push(score);
+  if (smileScoreHistory.length > SMILE_FRAME_WINDOW) smileScoreHistory.shift();
+
+  return smileScoreHistory.filter(frameScore => frameScore >= SMILE_SCORE_THRESHOLD).length >= SMILE_REQUIRED_FRAMES;
 }
 
 function hasRegisteredFace() {
@@ -649,6 +691,8 @@ function batal() {
   isLivenessPassed = false;
   isFaceVerified = false;
   livenessConfirmCount = 0;
+  smileScoreHistory = [];
+  smileMouthBaseline = null;
   currentFaceDescriptor = null;
   lastCapturedPhotoDataUrl = "";
   stopCamera();
@@ -692,6 +736,8 @@ async function startCamera() {
     isLivenessPassed = false;
     isFaceVerified = false;
     livenessConfirmCount = 0;
+    smileScoreHistory = [];
+    smileMouthBaseline = null;
     currentFaceDescriptor = null;
     lastCapturedPhotoDataUrl = "";
     const btnKirim = document.getElementById('btnKirimAbsen');
@@ -779,10 +825,12 @@ async function jalankanLivenessDetection(videoEl, statusEl, btnKirim) {
       if (detections.length === 1) {
         const detection = detections[0];
         const isFaceMatched = modePilihan === "DaftarWajah" || faceapi.euclideanDistance(currentUserData.faceDescriptor, detection.descriptor) <= FACE_MATCH_THRESHOLD;
-        const isSmileDetected = detection.expressions.happy > 0.45;
+        const smileScore = isFaceMatched ? hitungSinyalSenyum(detection) : 0;
+        const isSmileDetected = isFaceMatched && catatSinyalSenyum(smileScore);
 
         if (!isFaceMatched) {
           livenessConfirmCount = 0;
+          smileScoreHistory = [];
           isFaceVerified = false;
           statusEl.innerText = "Wajah tidak sesuai dengan akun yang login.";
           statusEl.className = "liveness-badge status-danger";
@@ -817,6 +865,7 @@ async function jalankanLivenessDetection(videoEl, statusEl, btnKirim) {
           if (faceOverlay) faceOverlay.className = "face-overlay warning";
         } else {
           livenessConfirmCount = 0;
+          if (!isSmileDetected && smileScoreHistory.length === 0) smileMouthBaseline = null;
           statusEl.innerText = "Wajah terdeteksi. Silakan SENYUM LEBAR untuk melanjutkan.";
           statusEl.className = "liveness-badge status-warning";
           if (faceOverlay) faceOverlay.className = "face-overlay warning";
