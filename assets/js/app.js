@@ -30,11 +30,11 @@ const FACE_MATCH_THRESHOLD = 0.48;
 const FACE_DETECTION_INTERVAL_MS = 220;
 const FACE_DETECTOR_INPUT_SIZE = 320;
 const FACE_DETECTOR_SCORE_THRESHOLD = 0.5;
-const BLINK_CLOSED_EAR_RATIO = 0.72;
-const BLINK_OPEN_EAR_RATIO = 0.88;
-const BLINK_MIN_OPEN_EAR = 0.24;
+const BLINK_CLOSED_EAR_RATIO = 0.78;
+const BLINK_OPEN_EAR_RATIO = 0.9;
+const BLINK_MIN_OPEN_EAR = 0.18;
 const BLINK_REQUIRED_OPEN_FRAMES = 2;
-const BLINK_REQUIRED_CLOSED_FRAMES = 2;
+const BLINK_REQUIRED_CLOSED_FRAMES = 1;
 
 // HELPER LOADING OVERLAY BLUR
 function showLoading(pesan = "Memproses data...") {
@@ -86,13 +86,18 @@ function deteksiKedipan(landmarks) {
 
   if (!Number.isFinite(eyeAspectRatio) || eyeAspectRatio <= 0) return false;
 
-  if (!Number.isFinite(deteksiKedipan.openEarBaseline)) {
-    if (eyeAspectRatio >= BLINK_MIN_OPEN_EAR) {
-      blinkOpenFrames += 1;
-      deteksiKedipan.openEarBaseline = eyeAspectRatio;
-    } else {
+  if (blinkPhase === "waiting-open") {
+    if (eyeAspectRatio < BLINK_MIN_OPEN_EAR) {
       blinkOpenFrames = 0;
+      deteksiKedipan.openEarBaseline = NaN;
+      return false;
     }
+
+    blinkOpenFrames += 1;
+    deteksiKedipan.openEarBaseline = Number.isFinite(deteksiKedipan.openEarBaseline)
+      ? (deteksiKedipan.openEarBaseline * 0.5) + (eyeAspectRatio * 0.5)
+      : eyeAspectRatio;
+
     if (blinkOpenFrames >= BLINK_REQUIRED_OPEN_FRAMES) {
       blinkPhase = "ready";
     }
