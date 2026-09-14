@@ -398,10 +398,15 @@ function updateUIStatus(res) {
   const btnIzin = document.querySelector("button[onclick*=\"bukaForm('Izin')\"]");
 
   if (statusIzin) {
-    infoStatusHTML = `<span class="status-izin">${escapeHtml(statusIzin)} (Izin Aktif)</span><br>
-      <button onclick="batalkanIzin()" class="cancel-leave-button">
-        <i class="fa-solid fa-rotate-left"></i> Batalkan Izin/Sakit
-      </button>`;
+    infoStatusHTML = `<div class="attendance-status-grid">
+      <div class="attendance-status-card attendance-status-leave">
+        <span class="attendance-status-label"><i class="fa-solid fa-file-pen" aria-hidden="true"></i> Izin / Sakit</span>
+        <strong class="status-izin">${escapeHtml(statusIzin)} (Izin Aktif)</strong>
+        <button onclick="batalkanIzin()" class="cancel-leave-button">
+          <i class="fa-solid fa-rotate-left"></i> Batalkan Izin/Sakit
+        </button>
+      </div>
+    </div>`;
 
     if (btnMasuk) btnMasuk.classList.add("hidden");
     if (btnKeluar) btnKeluar.classList.add("hidden");
@@ -412,7 +417,16 @@ function updateUIStatus(res) {
     let labelMasuk = statusMasuk === "Sudah" ? `Sudah (${jamMasuk || 'Terekam'})` : "Belum";
     let labelKeluar = statusKeluar === "Sudah" ? `Sudah (${jamKeluar || 'Terekam'})` : "Belum";
 
-    infoStatusHTML = `Masuk: <span class="${textMasukClass} status-value">${escapeHtml(labelMasuk)}</span> | Keluar: <span class="${textKeluarClass} status-value">${escapeHtml(labelKeluar)}</span>`;
+    infoStatusHTML = `<div class="attendance-status-grid">
+      <div class="attendance-status-card attendance-status-entry">
+        <span class="attendance-status-label"><i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i> Absen Masuk</span>
+        <strong class="${textMasukClass} status-value">${escapeHtml(labelMasuk)}</strong>
+      </div>
+      <div class="attendance-status-card attendance-status-exit">
+        <span class="attendance-status-label"><i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i> Absen Keluar</span>
+        <strong class="${textKeluarClass} status-value">${escapeHtml(labelKeluar)}</strong>
+      </div>
+    </div>`;
 
     if (statusMasuk === "Belum") {
       if (btnMasuk) btnMasuk.classList.remove("hidden");
@@ -471,7 +485,9 @@ function showDashboard(nama) {
       </div>
       <div class="today-status">
         <span class="today-status-label"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i> Status Hari Ini</span>
-        <span id="textStatusAbsen" aria-live="polite"><i class="fa-solid fa-spinner fa-spin"></i> Menyinkronkan...</span>
+      </div>
+      <div id="textStatusAbsen" aria-live="polite">
+        <i class="fa-solid fa-spinner fa-spin"></i> Menyinkronkan...
       </div>
     </div>
   `;
@@ -612,12 +628,14 @@ async function bukaForm(jenis) {
 
   if (jenis === 'Izin') {
     modePilihan = "Izin";
+    document.getElementById('dashboardSection').classList.add('form-active');
     document.getElementById('mainButtons').classList.add('hidden');
     document.getElementById('izinArea').classList.remove('hidden');
     return;
   }
 
   modePilihan = jenis;
+  document.getElementById('dashboardSection').classList.add('form-active');
   document.getElementById('mainButtons').classList.add('hidden');
   document.getElementById('menuTitle').innerText = "Foto Absen " + jenis;
   document.getElementById('cameraArea').classList.remove('hidden');
@@ -633,6 +651,7 @@ function batal() {
   currentFaceDescriptor = null;
   lastCapturedPhotoDataUrl = "";
   stopCamera();
+  document.getElementById('dashboardSection').classList.remove('form-active');
   document.getElementById('cameraArea').classList.add('hidden');
   document.getElementById('izinArea').classList.add('hidden');
   updateFaceRegistrationVisibility();
@@ -644,6 +663,7 @@ function batal() {
 
 function bukaPendaftaranWajah() {
   modePilihan = "DaftarWajah";
+  document.getElementById('dashboardSection').classList.add('form-active');
   document.getElementById('faceRegistrationNotice').classList.add('hidden');
   document.getElementById('mainButtons').classList.add('hidden');
   document.getElementById('menuTitle').innerText = "Daftarkan Wajah";
