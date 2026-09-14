@@ -22,9 +22,9 @@ let currentFaceDescriptor = null;
 let lastDashboardDateKey = null;
 let lastCapturedPhotoDataUrl = "";
 const LIVENESS_REQUIRED_FRAMES = 3;
-const FACE_MATCH_THRESHOLD = 0.5;
-const FACE_DETECTION_INTERVAL_MS = 300;
-const FACE_DETECTOR_INPUT_SIZE = 224;
+const FACE_MATCH_THRESHOLD = 0.48;
+const FACE_DETECTION_INTERVAL_MS = 220;
+const FACE_DETECTOR_INPUT_SIZE = 320;
 const FACE_DETECTOR_SCORE_THRESHOLD = 0.5;
 
 // HELPER LOADING OVERLAY BLUR
@@ -718,7 +718,14 @@ async function startCamera() {
       throw new Error("Descriptor wajah akun belum tersedia.");
     }
 
-    streamRef = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+    streamRef = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: { ideal: "user" },
+        width: { ideal: 640 },
+        height: { ideal: 480 },
+        frameRate: { ideal: 30, max: 30 }
+      }
+    });
     const videoEl = document.getElementById('video');
     videoEl.srcObject = streamRef;
     videoEl.onplay = () => {

@@ -1,10 +1,10 @@
-const CACHE_NAME = "eranga-cache-v10";
+const CACHE_NAME = "eranga-cache-v11";
 
 const STATIC_ASSETS = [
   "./",
   "./index.html",
   "./assets/css/style.css?v=20260918",
-  "./assets/js/app.js?v=20260917"
+  "./assets/js/app.js?v=20260919"
 ];
 
 self.addEventListener("install", (e) => {
