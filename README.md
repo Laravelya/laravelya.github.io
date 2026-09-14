@@ -111,7 +111,7 @@ Pengajuan izin atau sakit dapat dilakukan melalui menu **Izin / Sakit** dan dapa
 - Login dengan username dan password.
 - Penguncian sementara setelah lima kali login gagal.
 - Pendaftaran dan pencocokan wajah.
-- Verifikasi liveness dengan instruksi tersenyum.
+- Verifikasi liveness dengan instruksi berkedip; senyum dapat menjadi alternatif.
 - Satu wajah di depan kamera.
 - Lokasi dalam radius maksimal 50 meter dari titik sekolah.
 - Absensi pada Senin sampai Jumat, pukul 06.30 sampai 23.59 WITA.
