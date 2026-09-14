@@ -256,7 +256,7 @@ window.addEventListener("offline", cekKoneksiInternet);
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js?v=20260922', { scope: './', updateViaCache: 'none' })
+    navigator.serviceWorker.register('sw.js?v=20260924', { scope: './', updateViaCache: 'none' })
       .then(() => console.log('Service Worker Terpasang!'))
       .catch(err => console.error('SW Gagal:', err));
   });
@@ -301,7 +301,7 @@ async function fetchLoginWithRetry(username, password) {
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
 
     try {
       const response = await fetch(GAS_URL, {
@@ -311,13 +311,16 @@ async function fetchLoginWithRetry(username, password) {
       });
 
       if (!response.ok) {
-        throw new Error(`Server mengembalikan HTTP ${response.status}.`);
+        const error = new Error(`Server mengembalikan HTTP ${response.status}.`);
+        error.retryable = response.status >= 500;
+        throw error;
       }
 
       return await response.json();
     } catch (error) {
       lastError = error;
-      if (attempt === maxAttempts) break;
+      const retryable = error.name === "AbortError" || error.retryable === true || !('retryable' in error);
+      if (!retryable || attempt === maxAttempts) break;
       await new Promise(resolve => setTimeout(resolve, attempt * 2000));
     } finally {
       clearTimeout(timeoutId);
@@ -741,15 +744,12 @@ async function startCamera() {
       statusEl.className = "liveness-badge status-blue";
     }
 
-    await loadFaceAPIModels();
-
-    if (statusEl) {
-      statusEl.innerText = "Kamera aktif. Posisikan wajah Anda...";
-      statusEl.className = "liveness-badge status-red";
-    }
-
     if (modePilihan !== "DaftarWajah" && (!Array.isArray(currentUserData?.faceDescriptor) || currentUserData.faceDescriptor.length !== 128)) {
       throw new Error("Descriptor wajah akun belum tersedia.");
+    }
+
+    if (!navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
+      throw new Error("Kamera tidak didukung atau halaman tidak dibuka melalui HTTPS.");
     }
 
     const modelPromise = loadFaceAPIModels();
@@ -763,6 +763,10 @@ async function startCamera() {
     });
     [modelPromise, pendingStream] = await Promise.all([modelPromise, cameraPromise]);
     streamRef = pendingStream;
+    if (statusEl) {
+      statusEl.innerText = "Kamera aktif. Posisikan wajah Anda...";
+      statusEl.className = "liveness-badge status-red";
+    }
     const videoEl = document.getElementById('video');
     videoEl.srcObject = streamRef;
     videoEl.onplay = () => {
@@ -773,12 +777,15 @@ async function startCamera() {
       pendingStream.getTracks().forEach(track => track.stop());
     }
     const isMissingDescriptor = e.message === "Descriptor wajah akun belum tersedia.";
+    const isCameraUnavailable = e.name === "NotAllowedError" || e.name === "NotFoundError" || e.name === "NotReadableError" || e.message.includes("Kamera tidak didukung");
     Swal.fire({
       icon: 'error',
-      title: isMissingDescriptor ? 'Wajah Belum Terdaftar' : 'Kamera Gagal',
+      title: isMissingDescriptor ? 'Wajah Belum Terdaftar' : isCameraUnavailable ? 'Izin Kamera Diperlukan' : 'Model Wajah Gagal Dimuat',
       text: isMissingDescriptor
         ? 'Descriptor wajah akun belum tersedia. Hubungi administrator untuk mendaftarkan wajah Anda.'
-        : 'Gagal membuka kamera atau memuat model deteksi wajah.',
+        : isCameraUnavailable
+          ? 'Izinkan akses kamera untuk aplikasi ini, lalu coba lagi.'
+          : 'Model deteksi wajah gagal dimuat. Periksa koneksi internet lalu coba lagi.',
       confirmButtonColor: '#dc3545'
     });
     batal();
@@ -837,7 +844,6 @@ async function jalankanLivenessDetection(videoEl, statusEl, btnKirim) {
     try {
       const detections = await faceapi.detectAllFaces(videoEl, detectorOptions)
         .withFaceLandmarks()
-        .withFaceExpressions()
         .withFaceDescriptors();
       if (detections.length === 1) {
         const detection = detections[0];
