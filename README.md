@@ -114,7 +114,7 @@ Pengajuan izin atau sakit dapat dilakukan melalui menu **Izin / Sakit** dan dapa
 - Verifikasi liveness dengan instruksi tersenyum.
 - Satu wajah di depan kamera.
 - Lokasi dalam radius maksimal 50 meter dari titik sekolah.
-- Absensi pada Senin sampai Jumat, pukul 06.30 sampai 23.59 WITA.
+- Absensi pada Senin sampai Jumat, pukul 05.30 sampai 23.59 WITA.
 - Pencegahan absensi masuk/keluar ganda pada hari yang sama.
 - Sinkronisasi status harian dan cache lokal.
 
