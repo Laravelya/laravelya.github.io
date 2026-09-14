@@ -14,6 +14,7 @@ let currentUserData = null;
 let isLivenessPassed = false;
 let isDetectingFace = false;
 let modelsLoaded = false;
+let modelsLoadPromise = null;
 let isSubmitting = false;
 let statusSyncPromise = null;
 let livenessConfirmCount = 0;
@@ -256,7 +257,7 @@ window.addEventListener("offline", cekKoneksiInternet);
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js?v=20260924', { scope: './', updateViaCache: 'none' })
+    navigator.serviceWorker.register('sw.js?v=20260925', { scope: './', updateViaCache: 'none' })
       .then(() => console.log('Service Worker Terpasang!'))
       .catch(err => console.error('SW Gagal:', err));
   });
@@ -709,16 +710,39 @@ function bukaPendaftaranWajah() {
 
 async function loadFaceAPIModels() {
   if (modelsLoaded) return;
+  if (modelsLoadPromise) return modelsLoadPromise;
   if (typeof faceapi === 'undefined') {
     throw new Error("Library deteksi wajah belum tersedia.");
   }
-  const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
-  await Promise.all([
-    faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
-    faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
-    faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
-  ]);
-  modelsLoaded = true;
+
+  modelsLoadPromise = (async () => {
+    const modelSources = [
+      'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/',
+      'https://unpkg.com/@vladmandic/face-api/model/'
+    ];
+    let lastError = null;
+
+    for (const modelUrl of modelSources) {
+      try {
+        await Promise.all([
+          faceapi.nets.tinyFaceDetector.loadFromUri(modelUrl),
+          faceapi.nets.faceLandmark68Net.loadFromUri(modelUrl),
+          faceapi.nets.faceRecognitionNet.loadFromUri(modelUrl)
+        ]);
+        modelsLoaded = true;
+        return;
+      } catch (error) {
+        lastError = error;
+        console.warn(`Gagal memuat model dari ${modelUrl}`, error);
+      }
+    }
+
+    throw lastError || new Error("Model deteksi wajah tidak tersedia.");
+  })().finally(() => {
+    if (!modelsLoaded) modelsLoadPromise = null;
+  });
+
+  return modelsLoadPromise;
 }
 
 async function startCamera() {
@@ -752,7 +776,10 @@ async function startCamera() {
       throw new Error("Kamera tidak didukung atau halaman tidak dibuka melalui HTTPS.");
     }
 
-    const modelPromise = loadFaceAPIModels();
+    const modelPromise = loadFaceAPIModels().catch(error => {
+      error.code = "MODEL_LOAD";
+      throw error;
+    });
     const cameraPromise = navigator.mediaDevices.getUserMedia({
       video: {
         facingMode: { ideal: "user" },
@@ -782,15 +809,18 @@ async function startCamera() {
       pendingStream.getTracks().forEach(track => track.stop());
     }
     const isMissingDescriptor = e.message === "Descriptor wajah akun belum tersedia.";
+    const isModelError = e.code === "MODEL_LOAD" || e.message === "Library deteksi wajah belum tersedia.";
     const isCameraUnavailable = e.name === "NotAllowedError" || e.name === "NotFoundError" || e.name === "NotReadableError" || e.message.includes("Kamera tidak didukung");
     Swal.fire({
       icon: 'error',
-      title: isMissingDescriptor ? 'Wajah Belum Terdaftar' : isCameraUnavailable ? 'Izin Kamera Diperlukan' : 'Model Wajah Gagal Dimuat',
+      title: isMissingDescriptor ? 'Wajah Belum Terdaftar' : isCameraUnavailable ? 'Izin Kamera Diperlukan' : isModelError ? 'Model Wajah Gagal Dimuat' : 'Kamera Gagal',
       text: isMissingDescriptor
         ? 'Descriptor wajah akun belum tersedia. Hubungi administrator untuk mendaftarkan wajah Anda.'
         : isCameraUnavailable
           ? 'Izinkan akses kamera untuk aplikasi ini, lalu coba lagi.'
-          : 'Model deteksi wajah gagal dimuat. Periksa koneksi internet lalu coba lagi.',
+          : isModelError
+            ? 'Model deteksi wajah gagal dimuat dari CDN. Periksa koneksi internet lalu coba lagi.'
+            : 'Kamera tidak dapat dibuka. Periksa izin kamera dan coba lagi.',
       confirmButtonColor: '#dc3545'
     });
     batal();
