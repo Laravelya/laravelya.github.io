@@ -253,7 +253,7 @@ window.addEventListener("offline", cekKoneksiInternet);
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('assets/js/sw.js?v=20260915', { scope: './', updateViaCache: 'none' })
+    navigator.serviceWorker.register('sw.js?v=20260915', { scope: './', updateViaCache: 'none' })
       .then(() => console.log('Service Worker Terpasang!'))
       .catch(err => console.error('SW Gagal:', err));
   });

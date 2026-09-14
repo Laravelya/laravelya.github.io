@@ -7,12 +7,11 @@ const STATIC_ASSETS = [
   "./assets/js/app.js"
 ];
 
-// 1. INSTALL
 self.addEventListener("install", (e) => {
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return Promise.allSettled(
-        STATIC_ASSETS.map((url) => 
+        STATIC_ASSETS.map((url) =>
           cache.add(url).catch((err) => console.warn(`[SW] Gagal memuat aset: ${url}`, err))
         )
       );
@@ -21,20 +20,11 @@ self.addEventListener("install", (e) => {
   self.skipWaiting();
 });
 
-// 2. ACTIVATE
 self.addEventListener("activate", (e) => {
   e.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            console.log(`[SW] Menghapus cache lama: ${key}`);
-            return caches.delete(key);
-          }
-          return null;
-        })
-      );
-    })
+    caches.keys().then((keys) => Promise.all(
+      keys.map((key) => key !== CACHE_NAME ? caches.delete(key) : null)
+    ))
   );
   self.clients.claim();
 });
@@ -45,7 +35,6 @@ self.addEventListener("message", (event) => {
   }
 });
 
-// 3. FETCH
 self.addEventListener("fetch", (e) => {
   if (e.request.method !== "GET") return;
 
@@ -82,28 +71,17 @@ self.addEventListener("fetch", (e) => {
             }
           })
           .catch(() => {});
-
         return cachedResponse;
       }
 
       return fetch(e.request)
         .then((networkResponse) => {
-          if (!networkResponse || networkResponse.status !== 200) {
-            return networkResponse;
-          }
-
+          if (!networkResponse || networkResponse.status !== 200) return networkResponse;
           const responseToCache = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(e.request, responseToCache);
-          });
-
+          caches.open(CACHE_NAME).then((cache) => cache.put(e.request, responseToCache));
           return networkResponse;
         })
-        .catch(() => {
-          if (e.request.mode === "navigate") {
-            return caches.match("./index.html");
-          }
-        });
+        .catch(() => e.request.mode === "navigate" ? caches.match("./index.html") : undefined);
     })
   );
 });
