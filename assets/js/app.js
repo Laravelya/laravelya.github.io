@@ -680,6 +680,7 @@ function batal() {
   isLivenessPassed = false;
   isFaceVerified = false;
   livenessConfirmCount = 0;
+  blinkState = "WAITING_OPEN";
   currentFaceDescriptor = null;
   lastCapturedPhotoDataUrl = "";
   stopCamera();
@@ -844,6 +845,7 @@ async function jalankanLivenessDetection(videoEl, statusEl, btnKirim) {
 
         if (!isFaceMatched) {
           livenessConfirmCount = 0;
+          blinkState = "WAITING_OPEN";
           isFaceVerified = false;
           statusEl.innerText = "Wajah tidak sesuai dengan akun yang login.";
           statusEl.className = "liveness-badge status-danger";
@@ -860,6 +862,12 @@ async function jalankanLivenessDetection(videoEl, statusEl, btnKirim) {
           if (faceOverlay) faceOverlay.className = "face-overlay warning";
         } else if (blinkState === "CLOSED" && mataSedangTerbuka(detection.landmarks)) {
           blinkState = "COMPLETED";
+          livenessConfirmCount = 1;
+          statusEl.innerText = "Kedipan terdeteksi. Memastikan wajah...";
+          statusEl.className = "liveness-badge status-warning";
+          if (faceOverlay) faceOverlay.className = "face-overlay warning";
+        } else if (blinkState === "COMPLETED" && mataSedangTerbuka(detection.landmarks)) {
+          livenessConfirmCount += 1;
           if (livenessConfirmCount >= LIVENESS_REQUIRED_FRAMES) {
             isLivenessPassed = true;
             isFaceVerified = true;
@@ -883,7 +891,6 @@ async function jalankanLivenessDetection(videoEl, statusEl, btnKirim) {
             }
             return;
           }
-          livenessConfirmCount += 1;
           statusEl.innerText = "Kedipan terdeteksi. Memastikan wajah...";
           statusEl.className = "liveness-badge status-warning";
           if (faceOverlay) faceOverlay.className = "face-overlay warning";
