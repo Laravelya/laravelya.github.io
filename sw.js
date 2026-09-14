@@ -1,4 +1,4 @@
-const CACHE_NAME = "eranga-cache-v11";
+const CACHE_NAME = "eranga-cache-deployment-20260915-v1";
 
 const STATIC_ASSETS = [
   "./",
