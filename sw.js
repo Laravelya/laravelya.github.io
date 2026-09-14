@@ -1,18 +1,10 @@
-<<<<<<< HEAD
-const CACHE_NAME = "eranga-cache-v16";
-=======
-const CACHE_NAME = "eranga-cache-v10";
->>>>>>> parent of aa7db14 (Tune face detection and cache busting)
+const CACHE_NAME = "eranga-cache-v11";
 
 const STATIC_ASSETS = [
   "./",
   "./index.html",
   "./assets/css/style.css?v=20260918",
-<<<<<<< HEAD
-  "./assets/js/app.js?v=20260926"
-=======
-  "./assets/js/app.js?v=20260917"
->>>>>>> parent of aa7db14 (Tune face detection and cache busting)
+  "./assets/js/app.js?v=20260919"
 ];
 
 self.addEventListener("install", (e) => {

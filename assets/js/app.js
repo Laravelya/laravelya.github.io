@@ -14,11 +14,9 @@ let currentUserData = null;
 let isLivenessPassed = false;
 let isDetectingFace = false;
 let modelsLoaded = false;
-let modelsLoadPromise = null;
 let isSubmitting = false;
 let statusSyncPromise = null;
 let livenessConfirmCount = 0;
-let blinkState = "WAITING_OPEN";
 let isFaceVerified = false;
 let currentFaceDescriptor = null;
 let lastDashboardDateKey = null;
@@ -28,8 +26,6 @@ const FACE_MATCH_THRESHOLD = 0.48;
 const FACE_DETECTION_INTERVAL_MS = 220;
 const FACE_DETECTOR_INPUT_SIZE = 320;
 const FACE_DETECTOR_SCORE_THRESHOLD = 0.5;
-const EYE_OPEN_THRESHOLD = 0.24;
-const EYE_CLOSED_THRESHOLD = 0.20;
 
 // HELPER LOADING OVERLAY BLUR
 function showLoading(pesan = "Memproses data...") {
@@ -257,7 +253,7 @@ window.addEventListener("offline", cekKoneksiInternet);
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js?v=20260926', { scope: './', updateViaCache: 'none' })
+    navigator.serviceWorker.register('sw.js?v=20260915', { scope: './', updateViaCache: 'none' })
       .then(() => console.log('Service Worker Terpasang!'))
       .catch(err => console.error('SW Gagal:', err));
   });
@@ -295,42 +291,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
 });
 
-// Percobaan login kembali
-async function fetchLoginWithRetry(username, password) {
-  const maxAttempts = 3;
-  let lastError = null;
-
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-    try {
-      const response = await fetch(GAS_URL, {
-        method: 'POST',
-        body: JSON.stringify({ action: "login", username, password }),
-        signal: controller.signal
-      });
-
-      if (!response.ok) {
-        const error = new Error(`Server mengembalikan HTTP ${response.status}.`);
-        error.retryable = response.status >= 500;
-        throw error;
-      }
-
-      return await response.json();
-    } catch (error) {
-      lastError = error;
-      const retryable = error.name === "AbortError" || error.retryable === true || !('retryable' in error);
-      if (!retryable || attempt === maxAttempts) break;
-      await new Promise(resolve => setTimeout(resolve, attempt * 2000));
-    } finally {
-      clearTimeout(timeoutId);
-    }
-  }
-
-  throw lastError || new Error("Gagal terhubung ke server.");
-}
-
+// LOGIN
 async function login() {
   if (isSubmitting) return;
 
@@ -349,7 +310,11 @@ async function login() {
   showLoading("Memverifikasi login...");
 
   try {
-    const res = await fetchLoginWithRetry(u, p);
+    const response = await fetch(GAS_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: "login", username: u, password: p })
+    });
+    const res = await response.json();
 
     hideLoading();
 
@@ -372,14 +337,11 @@ async function login() {
     }
   } catch (e) {
     hideLoading();
-    const errorMessage = e.name === "AbortError"
-      ? "Server tidak merespons dalam 10 detik."
-      : e.message || "Gagal terhubung ke server.";
-    document.getElementById('loginMsg').innerText = errorMessage;
+    document.getElementById('loginMsg').innerText = "Gagal terhubung ke server.";
     Swal.fire({
       icon: 'error',
-      title: 'Server Tidak Dapat Dihubungi',
-      text: errorMessage,
+      title: 'Koneksi Terputus',
+      text: 'Gagal terhubung ke server.',
       confirmButtonColor: '#dc3545'
     });
   } finally {
@@ -687,7 +649,6 @@ function batal() {
   isLivenessPassed = false;
   isFaceVerified = false;
   livenessConfirmCount = 0;
-  blinkState = "WAITING_OPEN";
   currentFaceDescriptor = null;
   lastCapturedPhotoDataUrl = "";
   stopCamera();
@@ -713,49 +674,24 @@ function bukaPendaftaranWajah() {
 
 async function loadFaceAPIModels() {
   if (modelsLoaded) return;
-  if (modelsLoadPromise) return modelsLoadPromise;
   if (typeof faceapi === 'undefined') {
     throw new Error("Library deteksi wajah belum tersedia.");
   }
-
-  modelsLoadPromise = (async () => {
-    const modelSources = [
-      'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/',
-      'https://unpkg.com/@vladmandic/face-api/model/'
-    ];
-    let lastError = null;
-
-    for (const modelUrl of modelSources) {
-      try {
-        await Promise.all([
-          faceapi.nets.tinyFaceDetector.loadFromUri(modelUrl),
-          faceapi.nets.faceLandmark68Net.loadFromUri(modelUrl),
-          faceapi.nets.faceRecognitionNet.loadFromUri(modelUrl)
-        ]);
-        modelsLoaded = true;
-        return;
-      } catch (error) {
-        lastError = error;
-        console.warn(`Gagal memuat model dari ${modelUrl}`, error);
-      }
-    }
-
-    throw lastError || new Error("Model deteksi wajah tidak tersedia.");
-  })().finally(() => {
-    if (!modelsLoaded) modelsLoadPromise = null;
-  });
-
-  return modelsLoadPromise;
+  const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
+  await Promise.all([
+    faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+    faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL),
+    faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+    faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+  ]);
+  modelsLoaded = true;
 }
 
 async function startCamera() {
-  let pendingStream = null;
-
   try {
     isLivenessPassed = false;
     isFaceVerified = false;
     livenessConfirmCount = 0;
-    blinkState = "WAITING_OPEN";
     currentFaceDescriptor = null;
     lastCapturedPhotoDataUrl = "";
     const btnKirim = document.getElementById('btnKirimAbsen');
@@ -771,19 +707,18 @@ async function startCamera() {
       statusEl.className = "liveness-badge status-blue";
     }
 
+    await loadFaceAPIModels();
+
+    if (statusEl) {
+      statusEl.innerText = "Kamera aktif. Posisikan wajah Anda...";
+      statusEl.className = "liveness-badge status-red";
+    }
+
     if (modePilihan !== "DaftarWajah" && (!Array.isArray(currentUserData?.faceDescriptor) || currentUserData.faceDescriptor.length !== 128)) {
       throw new Error("Descriptor wajah akun belum tersedia.");
     }
 
-    if (!navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
-      throw new Error("Kamera tidak didukung atau halaman tidak dibuka melalui HTTPS.");
-    }
-
-    const modelPromise = loadFaceAPIModels().catch(error => {
-      error.code = "MODEL_LOAD";
-      throw error;
-    });
-    const cameraPromise = navigator.mediaDevices.getUserMedia({
+    streamRef = await navigator.mediaDevices.getUserMedia({
       video: {
         facingMode: { ideal: "user" },
         width: { ideal: 640 },
@@ -791,39 +726,19 @@ async function startCamera() {
         frameRate: { ideal: 30, max: 30 }
       }
     });
-    try {
-      [modelPromise, pendingStream] = await Promise.all([modelPromise, cameraPromise]);
-    } catch (error) {
-      cameraPromise.then(stream => stream.getTracks().forEach(track => track.stop())).catch(() => {});
-      throw error;
-    }
-    streamRef = pendingStream;
-    if (statusEl) {
-      statusEl.innerText = "Kamera aktif. Posisikan wajah Anda...";
-      statusEl.className = "liveness-badge status-red";
-    }
     const videoEl = document.getElementById('video');
     videoEl.srcObject = streamRef;
     videoEl.onplay = () => {
       if (statusEl && btnKirim) jalankanLivenessDetection(videoEl, statusEl, btnKirim);
     };
   } catch (e) {
-    if (pendingStream) {
-      pendingStream.getTracks().forEach(track => track.stop());
-    }
     const isMissingDescriptor = e.message === "Descriptor wajah akun belum tersedia.";
-    const isModelError = e.code === "MODEL_LOAD" || e.message === "Library deteksi wajah belum tersedia.";
-    const isCameraUnavailable = e.name === "NotAllowedError" || e.name === "NotFoundError" || e.name === "NotReadableError" || e.message.includes("Kamera tidak didukung");
     Swal.fire({
       icon: 'error',
-      title: isMissingDescriptor ? 'Wajah Belum Terdaftar' : isCameraUnavailable ? 'Izin Kamera Diperlukan' : isModelError ? 'Model Wajah Gagal Dimuat' : 'Kamera Gagal',
+      title: isMissingDescriptor ? 'Wajah Belum Terdaftar' : 'Kamera Gagal',
       text: isMissingDescriptor
         ? 'Descriptor wajah akun belum tersedia. Hubungi administrator untuk mendaftarkan wajah Anda.'
-        : isCameraUnavailable
-          ? 'Izinkan akses kamera untuk aplikasi ini, lalu coba lagi.'
-          : isModelError
-            ? 'Model deteksi wajah gagal dimuat dari CDN. Periksa koneksi internet lalu coba lagi.'
-            : 'Kamera tidak dapat dibuka. Periksa izin kamera dan coba lagi.',
+        : 'Gagal membuka kamera atau memuat model deteksi wajah.',
       confirmButtonColor: '#dc3545'
     });
     batal();
@@ -845,29 +760,6 @@ function ambilFrameKameraUntukFoto(videoEl) {
   return canvas.toDataURL('image/jpeg', 0.55);
 }
 
-function hitungRasioMata(eyePoints) {
-  if (!eyePoints || eyePoints.length !== 6) return 1;
-
-  const jarak = (pointA, pointB) => Math.hypot(pointA.x - pointB.x, pointA.y - pointB.y);
-  const lebarMata = jarak(eyePoints[0], eyePoints[3]);
-  if (!lebarMata) return 1;
-
-  const tinggiMata = jarak(eyePoints[1], eyePoints[5]) + jarak(eyePoints[2], eyePoints[4]);
-  return tinggiMata / (2 * lebarMata);
-}
-
-function mataSedangTerbuka(landmarks) {
-  const rasioKiri = hitungRasioMata(landmarks.getLeftEye());
-  const rasioKanan = hitungRasioMata(landmarks.getRightEye());
-  return (rasioKiri + rasioKanan) / 2 >= EYE_OPEN_THRESHOLD;
-}
-
-function mataSedangTertutup(landmarks) {
-  const rasioKiri = hitungRasioMata(landmarks.getLeftEye());
-  const rasioKanan = hitungRasioMata(landmarks.getRightEye());
-  return (rasioKiri + rasioKanan) / 2 <= EYE_CLOSED_THRESHOLD;
-}
-
 async function jalankanLivenessDetection(videoEl, statusEl, btnKirim) {
   isDetectingFace = true;
   const faceOverlay = document.getElementById('faceOverlay');
@@ -882,6 +774,7 @@ async function jalankanLivenessDetection(videoEl, statusEl, btnKirim) {
     try {
       const detections = await faceapi.detectAllFaces(videoEl, detectorOptions)
         .withFaceLandmarks()
+        .withFaceExpressions()
         .withFaceDescriptors();
       if (detections.length === 1) {
         const detection = detections[0];
@@ -889,28 +782,11 @@ async function jalankanLivenessDetection(videoEl, statusEl, btnKirim) {
 
         if (!isFaceMatched) {
           livenessConfirmCount = 0;
-          blinkState = "WAITING_OPEN";
           isFaceVerified = false;
           statusEl.innerText = "Wajah tidak sesuai dengan akun yang login.";
           statusEl.className = "liveness-badge status-danger";
           if (faceOverlay) faceOverlay.className = "face-overlay warning";
-        } else if (blinkState === "WAITING_OPEN" && mataSedangTerbuka(detection.landmarks)) {
-          blinkState = "OPEN";
-          statusEl.innerText = "Wajah terdeteksi. Kedipkan mata sekali...";
-          statusEl.className = "liveness-badge status-warning";
-          if (faceOverlay) faceOverlay.className = "face-overlay warning";
-        } else if (blinkState === "OPEN" && mataSedangTertutup(detection.landmarks)) {
-          blinkState = "CLOSED";
-          statusEl.innerText = "Kedipan terdeteksi. Buka mata kembali...";
-          statusEl.className = "liveness-badge status-warning";
-          if (faceOverlay) faceOverlay.className = "face-overlay warning";
-        } else if (blinkState === "CLOSED" && mataSedangTerbuka(detection.landmarks)) {
-          blinkState = "COMPLETED";
-          livenessConfirmCount = 1;
-          statusEl.innerText = "Kedipan terdeteksi. Memastikan wajah...";
-          statusEl.className = "liveness-badge status-warning";
-          if (faceOverlay) faceOverlay.className = "face-overlay warning";
-        } else if (blinkState === "COMPLETED" && mataSedangTerbuka(detection.landmarks)) {
+        } else if (detection.expressions.happy > 0.7) {
           livenessConfirmCount += 1;
           if (livenessConfirmCount >= LIVENESS_REQUIRED_FRAMES) {
             isLivenessPassed = true;
@@ -935,13 +811,12 @@ async function jalankanLivenessDetection(videoEl, statusEl, btnKirim) {
             }
             return;
           }
-          statusEl.innerText = "Kedipan terdeteksi. Memastikan wajah...";
+          statusEl.innerText = "Senyum terdeteksi. Pertahankan senyum...";
           statusEl.className = "liveness-badge status-warning";
           if (faceOverlay) faceOverlay.className = "face-overlay warning";
         } else {
-          statusEl.innerText = blinkState === "OPEN"
-            ? "Wajah terdeteksi. Kedipkan mata sekali..."
-            : "Wajah terdeteksi. Buka mata untuk memulai...";
+          livenessConfirmCount = 0;
+          statusEl.innerText = "Wajah terdeteksi. Silakan SENYUM LEBAR untuk absen!";
           statusEl.className = "liveness-badge status-warning";
           if (faceOverlay) faceOverlay.className = "face-overlay warning";
         }
@@ -952,7 +827,6 @@ async function jalankanLivenessDetection(videoEl, statusEl, btnKirim) {
         if (faceOverlay) faceOverlay.className = "face-overlay warning";
       } else {
         livenessConfirmCount = 0;
-        blinkState = "WAITING_OPEN";
         statusEl.innerText = "Wajah TIDAK terdeteksi. Posisikan wajah ke kamera.";
         statusEl.className = "liveness-badge status-red";
         if (faceOverlay) faceOverlay.className = "face-overlay";
