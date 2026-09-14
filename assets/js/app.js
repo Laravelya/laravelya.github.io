@@ -761,7 +761,12 @@ async function startCamera() {
         frameRate: { ideal: 30, max: 30 }
       }
     });
-    [modelPromise, pendingStream] = await Promise.all([modelPromise, cameraPromise]);
+    try {
+      [modelPromise, pendingStream] = await Promise.all([modelPromise, cameraPromise]);
+    } catch (error) {
+      cameraPromise.then(stream => stream.getTracks().forEach(track => track.stop())).catch(() => {});
+      throw error;
+    }
     streamRef = pendingStream;
     if (statusEl) {
       statusEl.innerText = "Kamera aktif. Posisikan wajah Anda...";
@@ -914,6 +919,7 @@ async function jalankanLivenessDetection(videoEl, statusEl, btnKirim) {
         if (faceOverlay) faceOverlay.className = "face-overlay warning";
       } else {
         livenessConfirmCount = 0;
+        blinkState = "WAITING_OPEN";
         statusEl.innerText = "Wajah TIDAK terdeteksi. Posisikan wajah ke kamera.";
         statusEl.className = "liveness-badge status-red";
         if (faceOverlay) faceOverlay.className = "face-overlay";
