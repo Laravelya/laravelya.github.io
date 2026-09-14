@@ -291,7 +291,39 @@ window.addEventListener('DOMContentLoaded', () => {
 
 });
 
-// LOGIN
+// Percobaan login kembali
+async function fetchLoginWithRetry(username, password) {
+  const maxAttempts = 3;
+  let lastError = null;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+    try {
+      const response = await fetch(GAS_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: "login", username, password }),
+        signal: controller.signal
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server mengembalikan HTTP ${response.status}.`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      lastError = error;
+      if (attempt === maxAttempts) break;
+      await new Promise(resolve => setTimeout(resolve, attempt * 2000));
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
+  throw lastError || new Error("Gagal terhubung ke server.");
+}
+
 async function login() {
   if (isSubmitting) return;
 
@@ -310,11 +342,7 @@ async function login() {
   showLoading("Memverifikasi login...");
 
   try {
-    const response = await fetch(GAS_URL, {
-      method: 'POST',
-      body: JSON.stringify({ action: "login", username: u, password: p })
-    });
-    const res = await response.json();
+    const res = await fetchLoginWithRetry(u, p);
 
     hideLoading();
 
