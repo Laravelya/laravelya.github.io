@@ -171,7 +171,8 @@ h2 { margin: 0 0 10px; color: var(--ink); font-size: clamp(26px, 4vw, 34px); let
 #cameraArea .btn-gray, #izinArea .btn-gray { margin-top: 10px; }
 #cameraActions { scroll-margin-top: 18px; }
 #izinArea { max-width: 520px; margin: 4px auto 0; padding-top: 18px; border-top: 1px solid var(--line); }
-#izinArea select, #izinArea textarea { padding: 13px 14px; border-radius: 12px; font-size: 14px; }
+#izinArea select, #izinArea textarea { display: block; padding: 13px 14px; border-radius: 12px; font-size: 14px; }
+#izinArea select { margin-bottom: 12px; }
 #izinArea textarea { min-height: 100px; resize: vertical; }
 #status { min-height: 24px; margin-top: 10px; color: var(--brand-dark); font-size: 13px; font-weight: 600; }
 .process-spinner { margin-right: 7px; }
