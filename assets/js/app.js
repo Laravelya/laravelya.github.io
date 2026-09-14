@@ -17,6 +17,7 @@ let modelsLoaded = false;
 let isSubmitting = false;
 let statusSyncPromise = null;
 let livenessConfirmCount = 0;
+let blinkState = "WAITING_OPEN";
 let isFaceVerified = false;
 let currentFaceDescriptor = null;
 let lastDashboardDateKey = null;
@@ -26,6 +27,8 @@ const FACE_MATCH_THRESHOLD = 0.48;
 const FACE_DETECTION_INTERVAL_MS = 220;
 const FACE_DETECTOR_INPUT_SIZE = 320;
 const FACE_DETECTOR_SCORE_THRESHOLD = 0.5;
+const EYE_OPEN_THRESHOLD = 0.24;
+const EYE_CLOSED_THRESHOLD = 0.20;
 
 // HELPER LOADING OVERLAY BLUR
 function showLoading(pesan = "Memproses data...") {
@@ -708,7 +711,6 @@ async function loadFaceAPIModels() {
   const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
   await Promise.all([
     faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
-    faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL),
     faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
     faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
   ]);
@@ -716,10 +718,13 @@ async function loadFaceAPIModels() {
 }
 
 async function startCamera() {
+  let pendingStream = null;
+
   try {
     isLivenessPassed = false;
     isFaceVerified = false;
     livenessConfirmCount = 0;
+    blinkState = "WAITING_OPEN";
     currentFaceDescriptor = null;
     lastCapturedPhotoDataUrl = "";
     const btnKirim = document.getElementById('btnKirimAbsen');
@@ -746,7 +751,8 @@ async function startCamera() {
       throw new Error("Descriptor wajah akun belum tersedia.");
     }
 
-    streamRef = await navigator.mediaDevices.getUserMedia({
+    const modelPromise = loadFaceAPIModels();
+    const cameraPromise = navigator.mediaDevices.getUserMedia({
       video: {
         facingMode: { ideal: "user" },
         width: { ideal: 640 },
@@ -754,12 +760,17 @@ async function startCamera() {
         frameRate: { ideal: 30, max: 30 }
       }
     });
+    [modelPromise, pendingStream] = await Promise.all([modelPromise, cameraPromise]);
+    streamRef = pendingStream;
     const videoEl = document.getElementById('video');
     videoEl.srcObject = streamRef;
     videoEl.onplay = () => {
       if (statusEl && btnKirim) jalankanLivenessDetection(videoEl, statusEl, btnKirim);
     };
   } catch (e) {
+    if (pendingStream) {
+      pendingStream.getTracks().forEach(track => track.stop());
+    }
     const isMissingDescriptor = e.message === "Descriptor wajah akun belum tersedia.";
     Swal.fire({
       icon: 'error',
@@ -788,6 +799,29 @@ function ambilFrameKameraUntukFoto(videoEl) {
   return canvas.toDataURL('image/jpeg', 0.55);
 }
 
+function hitungRasioMata(eyePoints) {
+  if (!eyePoints || eyePoints.length !== 6) return 1;
+
+  const jarak = (pointA, pointB) => Math.hypot(pointA.x - pointB.x, pointA.y - pointB.y);
+  const lebarMata = jarak(eyePoints[0], eyePoints[3]);
+  if (!lebarMata) return 1;
+
+  const tinggiMata = jarak(eyePoints[1], eyePoints[5]) + jarak(eyePoints[2], eyePoints[4]);
+  return tinggiMata / (2 * lebarMata);
+}
+
+function mataSedangTerbuka(landmarks) {
+  const rasioKiri = hitungRasioMata(landmarks.getLeftEye());
+  const rasioKanan = hitungRasioMata(landmarks.getRightEye());
+  return (rasioKiri + rasioKanan) / 2 >= EYE_OPEN_THRESHOLD;
+}
+
+function mataSedangTertutup(landmarks) {
+  const rasioKiri = hitungRasioMata(landmarks.getLeftEye());
+  const rasioKanan = hitungRasioMata(landmarks.getRightEye());
+  return (rasioKiri + rasioKanan) / 2 <= EYE_CLOSED_THRESHOLD;
+}
+
 async function jalankanLivenessDetection(videoEl, statusEl, btnKirim) {
   isDetectingFace = true;
   const faceOverlay = document.getElementById('faceOverlay');
@@ -814,8 +848,18 @@ async function jalankanLivenessDetection(videoEl, statusEl, btnKirim) {
           statusEl.innerText = "Wajah tidak sesuai dengan akun yang login.";
           statusEl.className = "liveness-badge status-danger";
           if (faceOverlay) faceOverlay.className = "face-overlay warning";
-        } else if (detection.expressions.happy > 0.7) {
-          livenessConfirmCount += 1;
+        } else if (blinkState === "WAITING_OPEN" && mataSedangTerbuka(detection.landmarks)) {
+          blinkState = "OPEN";
+          statusEl.innerText = "Wajah terdeteksi. Kedipkan mata sekali...";
+          statusEl.className = "liveness-badge status-warning";
+          if (faceOverlay) faceOverlay.className = "face-overlay warning";
+        } else if (blinkState === "OPEN" && mataSedangTertutup(detection.landmarks)) {
+          blinkState = "CLOSED";
+          statusEl.innerText = "Kedipan terdeteksi. Buka mata kembali...";
+          statusEl.className = "liveness-badge status-warning";
+          if (faceOverlay) faceOverlay.className = "face-overlay warning";
+        } else if (blinkState === "CLOSED" && mataSedangTerbuka(detection.landmarks)) {
+          blinkState = "COMPLETED";
           if (livenessConfirmCount >= LIVENESS_REQUIRED_FRAMES) {
             isLivenessPassed = true;
             isFaceVerified = true;
@@ -839,12 +883,14 @@ async function jalankanLivenessDetection(videoEl, statusEl, btnKirim) {
             }
             return;
           }
-          statusEl.innerText = "Senyum terdeteksi. Pertahankan senyum...";
+          livenessConfirmCount += 1;
+          statusEl.innerText = "Kedipan terdeteksi. Memastikan wajah...";
           statusEl.className = "liveness-badge status-warning";
           if (faceOverlay) faceOverlay.className = "face-overlay warning";
         } else {
-          livenessConfirmCount = 0;
-          statusEl.innerText = "Wajah terdeteksi. Silakan SENYUM LEBAR untuk absen!";
+          statusEl.innerText = blinkState === "OPEN"
+            ? "Wajah terdeteksi. Kedipkan mata sekali..."
+            : "Wajah terdeteksi. Buka mata untuk memulai...";
           statusEl.className = "liveness-badge status-warning";
           if (faceOverlay) faceOverlay.className = "face-overlay warning";
         }
