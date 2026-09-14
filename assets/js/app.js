@@ -30,9 +30,9 @@ const FACE_MATCH_THRESHOLD = 0.48;
 const FACE_DETECTION_INTERVAL_MS = 220;
 const FACE_DETECTOR_INPUT_SIZE = 320;
 const FACE_DETECTOR_SCORE_THRESHOLD = 0.5;
-const BLINK_CLOSED_EAR_RATIO = 0.78;
-const BLINK_OPEN_EAR_RATIO = 0.9;
-const BLINK_MIN_OPEN_EAR = 0.18;
+const BLINK_CLOSED_EAR_RATIO = 0.82;
+const BLINK_OPEN_EAR_RATIO = 0.86;
+const BLINK_MIN_OPEN_EAR = 0.16;
 const BLINK_REQUIRED_OPEN_FRAMES = 2;
 const BLINK_REQUIRED_CLOSED_FRAMES = 1;
 
@@ -83,6 +83,7 @@ function deteksiKedipan(landmarks) {
   const leftEar = hitungEyeAspectRatio(leftEye);
   const rightEar = hitungEyeAspectRatio(rightEye);
   const eyeAspectRatio = (leftEar + rightEar) / 2;
+  const closedEyeAspectRatio = Math.min(leftEar, rightEar);
 
   if (!Number.isFinite(eyeAspectRatio) || eyeAspectRatio <= 0) return false;
 
@@ -110,7 +111,7 @@ function deteksiKedipan(landmarks) {
     deteksiKedipan.openEarBaseline * BLINK_OPEN_EAR_RATIO
   );
 
-  if (blinkPhase === "ready" && eyeAspectRatio <= closedThreshold) {
+  if (blinkPhase === "ready" && closedEyeAspectRatio <= closedThreshold) {
     blinkClosedFrames += 1;
     if (blinkClosedFrames >= BLINK_REQUIRED_CLOSED_FRAMES) {
       blinkPhase = "closed";
@@ -862,7 +863,7 @@ async function jalankanLivenessDetection(videoEl, statusEl, btnKirim) {
         const detection = detections[0];
         const isFaceMatched = modePilihan === "DaftarWajah" || faceapi.euclideanDistance(currentUserData.faceDescriptor, detection.descriptor) <= FACE_MATCH_THRESHOLD;
         const isBlinkDetected = isFaceMatched && deteksiKedipan(detection.landmarks);
-        const isSmileDetected = detection.expressions.happy > 0.7;
+        const isSmileDetected = detection.expressions.happy > 0.45;
 
         if (!isFaceMatched) {
           livenessConfirmCount = 0;
@@ -904,7 +905,9 @@ async function jalankanLivenessDetection(videoEl, statusEl, btnKirim) {
           if (faceOverlay) faceOverlay.className = "face-overlay warning";
         } else {
           livenessConfirmCount = 0;
-          statusEl.innerText = "Wajah terdeteksi. Silakan berkedip satu kali (senyum juga boleh).";
+          statusEl.innerText = blinkPhase === "waiting-open"
+            ? "Wajah terdeteksi. Buka mata sebentar, lalu berkedip satu kali."
+            : "Wajah terdeteksi. Silakan berkedip satu kali atau tersenyum.";
           statusEl.className = "liveness-badge status-warning";
           if (faceOverlay) faceOverlay.className = "face-overlay warning";
         }

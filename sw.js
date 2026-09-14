@@ -1,5 +1,5 @@
 // Kalau server bermasalah atau koneksi putus, ubah CACHE_NAME untuk memaksa service worker menghapus cache lama dan memuat ulang aset baru.
-const CACHE_NAME = "eranga-cache-deployment-20260920-v3";
+const CACHE_NAME = "eranga-cache-deployment-20260920-v4";
 
 const STATIC_ASSETS = [
   "./",
