@@ -5,7 +5,7 @@ const STATIC_ASSETS = [
   "./",
   "./index.html",
   "./assets/css/style.css?v=20260918",
-  "./assets/js/app.js?v=20260920"
+  "./assets/js/app.js?v=20260930"
 ];
 
 self.addEventListener("install", (e) => {
