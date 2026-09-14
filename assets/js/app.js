@@ -23,6 +23,9 @@ let lastDashboardDateKey = null;
 let lastCapturedPhotoDataUrl = "";
 const LIVENESS_REQUIRED_FRAMES = 3;
 const FACE_MATCH_THRESHOLD = 0.5;
+const FACE_DETECTION_INTERVAL_MS = 300;
+const FACE_DETECTOR_INPUT_SIZE = 224;
+const FACE_DETECTOR_SCORE_THRESHOLD = 0.5;
 
 // HELPER LOADING OVERLAY BLUR
 function showLoading(pesan = "Memproses data...") {
@@ -107,9 +110,15 @@ function ambilStatusLokal() {
 // HELPER FETCH WITH AUTO-RETRY
 async function fetchCekStatusWithRetry(retries = 3, delay = 1200) {
   if (statusSyncPromise) return statusSyncPromise;
-  if (!currentUserData?.sessionToken) return Promise.reject(new Error("Sesi tidak tersedia."));
+  if (!currentUserData?.sessionToken) {
+    const error = new Error("Sesi login tidak tersedia.");
+    error.code = "SESSION_MISSING";
+    return Promise.reject(error);
+  }
 
   statusSyncPromise = (async () => {
+    let lastError = null;
+
     for (let i = 0; i < retries; i++) {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 8000);
@@ -119,11 +128,33 @@ async function fetchCekStatusWithRetry(retries = 3, delay = 1200) {
           body: JSON.stringify({ action: "cek_status", sessionToken: currentUserData.sessionToken }),
           signal: controller.signal
         });
-        if (response.ok) {
+
+        if (!response.ok) {
+          lastError = new Error(`Server mengembalikan HTTP ${response.status}.`);
+          lastError.code = "HTTP_ERROR";
+        } else {
           const res = await response.json();
           if (res.status === "success") return res;
+
+          const serverMessage = res.message || "Server menolak permintaan status.";
+          const error = new Error(serverMessage);
+          error.code = /sesi tidak valid|sudah berakhir/i.test(serverMessage)
+            ? "SESSION_EXPIRED"
+            : "SERVER_REJECTED";
+          lastError = error;
+
+          if (error.code === "SESSION_EXPIRED") throw error;
         }
       } catch (err) {
+        if (err.code === "SESSION_EXPIRED") throw err;
+
+        if (err.name === "AbortError") {
+          lastError = new Error("Server tidak merespons dalam 8 detik.");
+          lastError.code = "TIMEOUT";
+        } else if (err.code !== "SERVER_REJECTED") {
+          lastError = new Error("Tidak dapat terhubung ke server.");
+          lastError.code = "NETWORK";
+        }
         console.warn(`Percobaan cek_status ke-${i + 1} gagal, mencoba lagi...`);
       } finally {
         clearTimeout(timeoutId);
@@ -133,7 +164,8 @@ async function fetchCekStatusWithRetry(retries = 3, delay = 1200) {
         await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
-    throw new Error("Gagal terhubung ke server setelah beberapa percobaan.");
+
+    throw lastError || new Error("Gagal memuat status hari ini.");
   })();
 
   statusSyncPromise.then(
@@ -221,7 +253,7 @@ window.addEventListener("offline", cekKoneksiInternet);
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('assets/js/sw.js?v=' + Date.now(), { scope: './', updateViaCache: 'none', cache: 'reload' })
+    navigator.serviceWorker.register('assets/js/sw.js?v=20260915', { scope: './', updateViaCache: 'none' })
       .then(() => console.log('Service Worker Terpasang!'))
       .catch(err => console.error('SW Gagal:', err));
   });
@@ -257,7 +289,6 @@ window.addEventListener('DOMContentLoaded', () => {
     hapusSesi();
   }
 
-  setTimeout(loadFaceAPIModels, 2000);
 });
 
 // LOGIN
@@ -463,7 +494,24 @@ function showDashboard(nama) {
       console.error("Gagal sinkronisasi status dari server:", e);
       const statusSpan = document.getElementById('textStatusAbsen');
       if (!statusLokal && statusSpan) {
-        statusSpan.innerHTML = `<span class="status-offline"><i class="fa-solid fa-wifi"></i> Koneksi lambat / Terputus</span>`;
+        const errorMessages = {
+          SESSION_MISSING: "Sesi login tidak tersedia. Silakan login ulang.",
+          SESSION_EXPIRED: "Sesi login telah berakhir. Silakan login ulang.",
+          TIMEOUT: "Server tidak merespons. Coba lagi dalam beberapa saat.",
+          SERVER_REJECTED: `Server menolak permintaan: ${e.message}`,
+          HTTP_ERROR: e.message,
+          NETWORK: "Tidak dapat terhubung ke server. Periksa koneksi internet."
+        };
+        const message = errorMessages[e.code] || "Status hari ini gagal dimuat. Coba lagi nanti.";
+        const icon = e.code === "SESSION_MISSING" || e.code === "SESSION_EXPIRED"
+          ? "fa-lock"
+          : e.code === "SERVER_REJECTED" || e.code === "HTTP_ERROR"
+            ? "fa-server"
+            : "fa-wifi";
+        const statusClass = e.code === "SERVER_REJECTED" || e.code === "HTTP_ERROR"
+          ? "status-danger"
+          : "status-offline";
+        statusSpan.innerHTML = `<span class="${statusClass}"><i class="fa-solid ${icon}"></i> ${escapeHtml(message)}</span>`;
       }
     });
 }
@@ -674,25 +722,29 @@ function ambilFrameKameraUntukFoto(videoEl) {
   const canvas = document.getElementById('canvas');
   if (!videoEl || !canvas || !videoEl.videoWidth || !videoEl.videoHeight) return "";
 
-  const maxWidth = 640;
+  const maxWidth = 480;
   const scale = maxWidth / videoEl.videoWidth;
   canvas.width = maxWidth;
   canvas.height = videoEl.videoHeight * scale;
 
   const ctx = canvas.getContext('2d');
   ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
-  return canvas.toDataURL('image/jpeg', 0.6);
+  return canvas.toDataURL('image/jpeg', 0.55);
 }
 
 async function jalankanLivenessDetection(videoEl, statusEl, btnKirim) {
   isDetectingFace = true;
   const faceOverlay = document.getElementById('faceOverlay');
+  const detectorOptions = new faceapi.TinyFaceDetectorOptions({
+    inputSize: FACE_DETECTOR_INPUT_SIZE,
+    scoreThreshold: FACE_DETECTOR_SCORE_THRESHOLD
+  });
 
   const detectFrame = async () => {
     if (!isDetectingFace || isLivenessPassed) return;
 
     try {
-      const detections = await faceapi.detectAllFaces(videoEl, new faceapi.TinyFaceDetectorOptions())
+      const detections = await faceapi.detectAllFaces(videoEl, detectorOptions)
         .withFaceLandmarks()
         .withFaceExpressions()
         .withFaceDescriptors();
@@ -762,7 +814,7 @@ async function jalankanLivenessDetection(videoEl, statusEl, btnKirim) {
     }
 
     if (isDetectingFace && !isLivenessPassed) {
-      setTimeout(detectFrame, 200);
+      setTimeout(detectFrame, FACE_DETECTION_INTERVAL_MS);
     }
   };
 

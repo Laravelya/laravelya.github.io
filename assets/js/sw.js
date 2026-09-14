@@ -1,9 +1,10 @@
-const CACHE_NAME = "eranga-cache-v6";
+const CACHE_NAME = "eranga-cache-v7";
 
 const STATIC_ASSETS = [
   "./",
   "./index.html",
-  "./app.js"
+  "./assets/css/style.css?v=20260915",
+  "./assets/js/app.js"
 ];
 
 // 1. INSTALL
@@ -53,7 +54,8 @@ self.addEventListener("fetch", (e) => {
 
   const isAppShell = e.request.mode === "navigate" ||
     requestUrl.pathname.endsWith("/index.html") ||
-    requestUrl.pathname.endsWith("/app.js");
+    requestUrl.pathname.endsWith("/assets/js/app.js") ||
+    requestUrl.pathname.endsWith("/assets/css/style.css");
 
   if (isAppShell) {
     e.respondWith(
