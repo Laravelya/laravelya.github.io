@@ -610,21 +610,22 @@ setInterval(updateClock, 1000);
 
 // FORM & KAMERA
 async function bukaForm(jenis) {
-  if (window.AndroidBridge && typeof window.AndroidBridge.requestBssidUpdate === 'function') {
-    window.AndroidBridge.requestBssidUpdate();
-  }
+  // Deteksi WiFi dinonaktifkan sementara.
+  // if (window.AndroidBridge && typeof window.AndroidBridge.requestBssidUpdate === 'function') {
+  //   window.AndroidBridge.requestBssidUpdate();
+  // }
 
-  if (jenis === 'Masuk' || jenis === 'Keluar') {
-    if (!isBssidValid()) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Akses Ditolak!',
-        text: `Anda harus terhubung ke WiFi resmi sekolah untuk melakukan Absen ${jenis}. (BSSID Terdeteksi: ${bssidPengguna || 'Tidak Terdeteksi'})`,
-        confirmButtonColor: '#dc3545'
-      });
-      return;
-    }
-  }
+  // if (jenis === 'Masuk' || jenis === 'Keluar') {
+  //   if (!isBssidValid()) {
+  //     Swal.fire({
+  //       icon: 'error',
+  //       title: 'Akses Ditolak!',
+  //       text: `Anda harus terhubung ke WiFi resmi sekolah untuk melakukan Absen ${jenis}. (BSSID Terdeteksi: ${bssidPengguna || 'Tidak Terdeteksi'})`,
+  //       confirmButtonColor: '#dc3545'
+  //     });
+  //     return;
+  //   }
+  // }
 
   if (jenis === 'Izin') {
     modePilihan = "Izin";
@@ -857,16 +858,17 @@ function eksekusiAbsen() {
     return;
   }
 
-  if (!isBssidValid()) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Akses Ditolak!',
-      text: `Router WiFi tidak terdaftar sebagai milik sekolah atau koneksi terputus. (MAC Detected: ${bssidPengguna || 'Tidak Terdeteksi'})`,
-      confirmButtonColor: '#dc3545'
-    });
-    batal();
-    return;
-  }
+  // Deteksi WiFi dinonaktifkan sementara.
+  // if (!isBssidValid()) {
+  //   Swal.fire({
+  //     icon: 'error',
+  //     title: 'Akses Ditolak!',
+  //     text: `Router WiFi tidak terdaftar sebagai milik sekolah atau koneksi terputus. (MAC Detected: ${bssidPengguna || 'Tidak Terdeteksi'})`,
+  //     confirmButtonColor: '#dc3545'
+  //   });
+  //   batal();
+  //   return;
+  // }
 
   isSubmitting = true;
   setSubmitButtonState(true);
