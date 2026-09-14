@@ -257,7 +257,7 @@ window.addEventListener("offline", cekKoneksiInternet);
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js?v=20260925', { scope: './', updateViaCache: 'none' })
+    navigator.serviceWorker.register('sw.js?v=20260926', { scope: './', updateViaCache: 'none' })
       .then(() => console.log('Service Worker Terpasang!'))
       .catch(err => console.error('SW Gagal:', err));
   });
@@ -372,11 +372,14 @@ async function login() {
     }
   } catch (e) {
     hideLoading();
-    document.getElementById('loginMsg').innerText = "Gagal terhubung ke server.";
+    const errorMessage = e.name === "AbortError"
+      ? "Server tidak merespons dalam 10 detik."
+      : e.message || "Gagal terhubung ke server.";
+    document.getElementById('loginMsg').innerText = errorMessage;
     Swal.fire({
       icon: 'error',
-      title: 'Koneksi Terputus',
-      text: 'Gagal terhubung ke server.',
+      title: 'Server Tidak Dapat Dihubungi',
+      text: errorMessage,
       confirmButtonColor: '#dc3545'
     });
   } finally {
