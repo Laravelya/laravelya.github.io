@@ -21,20 +21,11 @@ let isFaceVerified = false;
 let currentFaceDescriptor = null;
 let lastDashboardDateKey = null;
 let lastCapturedPhotoDataUrl = "";
-let blinkWasDetected = false;
-let blinkPhase = "waiting-open";
-let blinkOpenFrames = 0;
-let blinkClosedFrames = 0;
 const LIVENESS_REQUIRED_FRAMES = 3;
 const FACE_MATCH_THRESHOLD = 0.48;
 const FACE_DETECTION_INTERVAL_MS = 220;
 const FACE_DETECTOR_INPUT_SIZE = 320;
 const FACE_DETECTOR_SCORE_THRESHOLD = 0.5;
-const BLINK_CLOSED_EAR_RATIO = 0.82;
-const BLINK_OPEN_EAR_RATIO = 0.86;
-const BLINK_MIN_OPEN_EAR = 0.16;
-const BLINK_REQUIRED_OPEN_FRAMES = 2;
-const BLINK_REQUIRED_CLOSED_FRAMES = 1;
 
 // HELPER LOADING OVERLAY BLUR
 function showLoading(pesan = "Memproses data...") {
@@ -65,70 +56,6 @@ function normalizeFaceDescriptor(value) {
     return null;
   }
 }
-
-function hitungEyeAspectRatio(eye) {
-  if (!eye || eye.length < 6) return 1;
-
-  const jarak = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
-  const tinggiVertikal = jarak(eye[1], eye[5]) + jarak(eye[2], eye[4]);
-  const lebarHorizontal = 2 * jarak(eye[0], eye[3]);
-  return lebarHorizontal > 0 ? tinggiVertikal / lebarHorizontal : 1;
-}
-
-function deteksiKedipan(landmarks) {
-  if (!landmarks) return false;
-
-  const leftEye = landmarks.getLeftEye();
-  const rightEye = landmarks.getRightEye();
-  const leftEar = hitungEyeAspectRatio(leftEye);
-  const rightEar = hitungEyeAspectRatio(rightEye);
-  const eyeAspectRatio = (leftEar + rightEar) / 2;
-  const closedEyeAspectRatio = Math.min(leftEar, rightEar);
-
-  if (!Number.isFinite(eyeAspectRatio) || eyeAspectRatio <= 0) return false;
-
-  if (blinkPhase === "waiting-open") {
-    if (eyeAspectRatio < BLINK_MIN_OPEN_EAR) {
-      blinkOpenFrames = 0;
-      deteksiKedipan.openEarBaseline = NaN;
-      return false;
-    }
-
-    blinkOpenFrames += 1;
-    deteksiKedipan.openEarBaseline = Number.isFinite(deteksiKedipan.openEarBaseline)
-      ? (deteksiKedipan.openEarBaseline * 0.5) + (eyeAspectRatio * 0.5)
-      : eyeAspectRatio;
-
-    if (blinkOpenFrames >= BLINK_REQUIRED_OPEN_FRAMES) {
-      blinkPhase = "ready";
-    }
-    return false;
-  }
-
-  const closedThreshold = deteksiKedipan.openEarBaseline * BLINK_CLOSED_EAR_RATIO;
-  const openThreshold = Math.max(
-    BLINK_MIN_OPEN_EAR,
-    deteksiKedipan.openEarBaseline * BLINK_OPEN_EAR_RATIO
-  );
-
-  if (blinkPhase === "ready" && closedEyeAspectRatio <= closedThreshold) {
-    blinkClosedFrames += 1;
-    if (blinkClosedFrames >= BLINK_REQUIRED_CLOSED_FRAMES) {
-      blinkPhase = "closed";
-    }
-  } else if (blinkPhase === "closed" && eyeAspectRatio >= openThreshold) {
-    blinkWasDetected = true;
-    blinkPhase = "complete";
-    blinkClosedFrames = 0;
-  } else if (blinkPhase === "ready" && eyeAspectRatio >= openThreshold) {
-    deteksiKedipan.openEarBaseline = (deteksiKedipan.openEarBaseline * 0.8) + (eyeAspectRatio * 0.2);
-    blinkClosedFrames = 0;
-  }
-
-  return blinkWasDetected;
-}
-
-deteksiKedipan.openEarBaseline = NaN;
 
 function hasRegisteredFace() {
   return normalizeFaceDescriptor(currentUserData?.faceDescriptor) !== null;
@@ -722,11 +649,6 @@ function batal() {
   isLivenessPassed = false;
   isFaceVerified = false;
   livenessConfirmCount = 0;
-  blinkWasDetected = false;
-  blinkPhase = "waiting-open";
-  blinkOpenFrames = 0;
-  blinkClosedFrames = 0;
-  deteksiKedipan.openEarBaseline = NaN;
   currentFaceDescriptor = null;
   lastCapturedPhotoDataUrl = "";
   stopCamera();
@@ -770,11 +692,6 @@ async function startCamera() {
     isLivenessPassed = false;
     isFaceVerified = false;
     livenessConfirmCount = 0;
-    blinkWasDetected = false;
-    blinkPhase = "waiting-open";
-    blinkOpenFrames = 0;
-    blinkClosedFrames = 0;
-    deteksiKedipan.openEarBaseline = NaN;
     currentFaceDescriptor = null;
     lastCapturedPhotoDataUrl = "";
     const btnKirim = document.getElementById('btnKirimAbsen');
@@ -862,18 +779,15 @@ async function jalankanLivenessDetection(videoEl, statusEl, btnKirim) {
       if (detections.length === 1) {
         const detection = detections[0];
         const isFaceMatched = modePilihan === "DaftarWajah" || faceapi.euclideanDistance(currentUserData.faceDescriptor, detection.descriptor) <= FACE_MATCH_THRESHOLD;
-        const isBlinkDetected = isFaceMatched && deteksiKedipan(detection.landmarks);
         const isSmileDetected = detection.expressions.happy > 0.45;
 
         if (!isFaceMatched) {
           livenessConfirmCount = 0;
-          blinkWasDetected = false;
-          blinkClosedFrames = 0;
           isFaceVerified = false;
           statusEl.innerText = "Wajah tidak sesuai dengan akun yang login.";
           statusEl.className = "liveness-badge status-danger";
           if (faceOverlay) faceOverlay.className = "face-overlay warning";
-        } else if (isBlinkDetected || isSmileDetected) {
+        } else if (isSmileDetected) {
           livenessConfirmCount += 1;
           if (livenessConfirmCount >= LIVENESS_REQUIRED_FRAMES) {
             isLivenessPassed = true;
@@ -898,28 +812,22 @@ async function jalankanLivenessDetection(videoEl, statusEl, btnKirim) {
             }
             return;
           }
-          statusEl.innerText = isBlinkDetected
-            ? "Kedipan terdeteksi. Pertahankan posisi wajah..."
-            : "Senyum terdeteksi. Pertahankan senyum...";
+          statusEl.innerText = "Senyum terdeteksi. Pertahankan senyum...";
           statusEl.className = "liveness-badge status-warning";
           if (faceOverlay) faceOverlay.className = "face-overlay warning";
         } else {
           livenessConfirmCount = 0;
-          statusEl.innerText = blinkPhase === "waiting-open"
-            ? "Wajah terdeteksi. Buka mata sebentar, lalu berkedip satu kali."
-            : "Wajah terdeteksi. Silakan berkedip satu kali atau tersenyum.";
+          statusEl.innerText = "Wajah terdeteksi. Silakan SENYUM LEBAR untuk melanjutkan.";
           statusEl.className = "liveness-badge status-warning";
           if (faceOverlay) faceOverlay.className = "face-overlay warning";
         }
       } else if (detections.length > 1) {
         livenessConfirmCount = 0;
-        blinkClosedFrames = 0;
         statusEl.innerText = "Lebih dari satu wajah terdeteksi. Pastikan hanya satu orang di kamera.";
         statusEl.className = "liveness-badge status-danger";
         if (faceOverlay) faceOverlay.className = "face-overlay warning";
       } else {
         livenessConfirmCount = 0;
-        blinkClosedFrames = 0;
         statusEl.innerText = "Wajah TIDAK terdeteksi. Posisikan wajah ke kamera.";
         statusEl.className = "liveness-badge status-red";
         if (faceOverlay) faceOverlay.className = "face-overlay";
