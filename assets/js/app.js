@@ -22,15 +22,19 @@ let currentFaceDescriptor = null;
 let lastDashboardDateKey = null;
 let lastCapturedPhotoDataUrl = "";
 let blinkWasDetected = false;
+let blinkPhase = "waiting-open";
+let blinkOpenFrames = 0;
 let blinkClosedFrames = 0;
 const LIVENESS_REQUIRED_FRAMES = 3;
 const FACE_MATCH_THRESHOLD = 0.48;
 const FACE_DETECTION_INTERVAL_MS = 220;
 const FACE_DETECTOR_INPUT_SIZE = 320;
 const FACE_DETECTOR_SCORE_THRESHOLD = 0.5;
-const BLINK_CLOSED_EAR_THRESHOLD = 0.22;
-const BLINK_OPEN_EAR_THRESHOLD = 0.26;
-const BLINK_REQUIRED_CLOSED_FRAMES = 1;
+const BLINK_CLOSED_EAR_RATIO = 0.72;
+const BLINK_OPEN_EAR_RATIO = 0.88;
+const BLINK_MIN_OPEN_EAR = 0.24;
+const BLINK_REQUIRED_OPEN_FRAMES = 2;
+const BLINK_REQUIRED_CLOSED_FRAMES = 2;
 
 // HELPER LOADING OVERLAY BLUR
 function showLoading(pesan = "Memproses data...") {
@@ -76,19 +80,49 @@ function deteksiKedipan(landmarks) {
 
   const leftEye = landmarks.getLeftEye();
   const rightEye = landmarks.getRightEye();
-  const eyeAspectRatio = (hitungEyeAspectRatio(leftEye) + hitungEyeAspectRatio(rightEye)) / 2;
+  const leftEar = hitungEyeAspectRatio(leftEye);
+  const rightEar = hitungEyeAspectRatio(rightEye);
+  const eyeAspectRatio = (leftEar + rightEar) / 2;
 
-  if (eyeAspectRatio <= BLINK_CLOSED_EAR_THRESHOLD) {
+  if (!Number.isFinite(eyeAspectRatio) || eyeAspectRatio <= 0) return false;
+
+  if (!Number.isFinite(deteksiKedipan.openEarBaseline)) {
+    if (eyeAspectRatio >= BLINK_MIN_OPEN_EAR) {
+      blinkOpenFrames += 1;
+      deteksiKedipan.openEarBaseline = eyeAspectRatio;
+    } else {
+      blinkOpenFrames = 0;
+    }
+    if (blinkOpenFrames >= BLINK_REQUIRED_OPEN_FRAMES) {
+      blinkPhase = "ready";
+    }
+    return false;
+  }
+
+  const closedThreshold = deteksiKedipan.openEarBaseline * BLINK_CLOSED_EAR_RATIO;
+  const openThreshold = Math.max(
+    BLINK_MIN_OPEN_EAR,
+    deteksiKedipan.openEarBaseline * BLINK_OPEN_EAR_RATIO
+  );
+
+  if (blinkPhase === "ready" && eyeAspectRatio <= closedThreshold) {
     blinkClosedFrames += 1;
-  } else if (eyeAspectRatio >= BLINK_OPEN_EAR_THRESHOLD && blinkClosedFrames >= BLINK_REQUIRED_CLOSED_FRAMES) {
+    if (blinkClosedFrames >= BLINK_REQUIRED_CLOSED_FRAMES) {
+      blinkPhase = "closed";
+    }
+  } else if (blinkPhase === "closed" && eyeAspectRatio >= openThreshold) {
     blinkWasDetected = true;
+    blinkPhase = "complete";
     blinkClosedFrames = 0;
-  } else if (eyeAspectRatio >= BLINK_OPEN_EAR_THRESHOLD) {
+  } else if (blinkPhase === "ready" && eyeAspectRatio >= openThreshold) {
+    deteksiKedipan.openEarBaseline = (deteksiKedipan.openEarBaseline * 0.8) + (eyeAspectRatio * 0.2);
     blinkClosedFrames = 0;
   }
 
   return blinkWasDetected;
 }
+
+deteksiKedipan.openEarBaseline = NaN;
 
 function hasRegisteredFace() {
   return normalizeFaceDescriptor(currentUserData?.faceDescriptor) !== null;
@@ -683,7 +717,10 @@ function batal() {
   isFaceVerified = false;
   livenessConfirmCount = 0;
   blinkWasDetected = false;
+  blinkPhase = "waiting-open";
+  blinkOpenFrames = 0;
   blinkClosedFrames = 0;
+  deteksiKedipan.openEarBaseline = NaN;
   currentFaceDescriptor = null;
   lastCapturedPhotoDataUrl = "";
   stopCamera();
@@ -728,7 +765,10 @@ async function startCamera() {
     isFaceVerified = false;
     livenessConfirmCount = 0;
     blinkWasDetected = false;
+    blinkPhase = "waiting-open";
+    blinkOpenFrames = 0;
     blinkClosedFrames = 0;
+    deteksiKedipan.openEarBaseline = NaN;
     currentFaceDescriptor = null;
     lastCapturedPhotoDataUrl = "";
     const btnKirim = document.getElementById('btnKirimAbsen');
