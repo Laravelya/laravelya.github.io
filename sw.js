@@ -1,11 +1,11 @@
 // Kalau server bermasalah atau koneksi putus, ubah CACHE_NAME untuk memaksa service worker menghapus cache lama dan memuat ulang aset baru.
-const CACHE_NAME = "eranga-cache-deployment-20260915-v27";
+const CACHE_NAME = "eranga-cache-deployment-20260915-v28";
 
 const STATIC_ASSETS = [
   "./",
   "./index.html",
-  "./assets/css/style.css?v=20260915-a9f4k2",
-  "./assets/js/app.js?v=20260915-b3h8m6"
+  "./assets/css/style.css?v=20260915-a9f4k3",
+  "./assets/js/app.js?v=20260915-b3h8m7"
 ];
 
 self.addEventListener("install", (e) => {
