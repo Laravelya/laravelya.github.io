@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#18332f">
+  <title>ERANGA Manage</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="assets/manage.css">
+</head>
+<body>
+  <main class="shell">
+    <section id="loginView" class="panel login-panel">
+      <p class="eyebrow"><i class="fa-solid fa-chart-line"></i> ERANGA Manage</p>
+      <h1>Ringkasan kehadiran.</h1>
+      <p class="lead">Pantau status absensi hari ini dari satu tempat.</p>
+      <form id="loginForm">
+        <label for="username">Username admin</label>
+        <input id="username" autocomplete="username" required>
+        <label for="password">Password</label>
+        <input id="password" type="password" autocomplete="current-password" required>
+        <button class="primary" type="submit"><i class="fa-solid fa-arrow-right-to-bracket"></i> Masuk ke dashboard</button>
+        <p id="loginMessage" class="message" role="alert"></p>
+      </form>
+    </section>
+
+    <section id="dashboardView" class="panel dashboard hidden">
+      <header class="header">
+        <div><p class="eyebrow">ERANGA Manage</p><h1>Dashboard kehadiran</h1><p id="dateLabel" class="muted"></p></div>
+        <div class="actions"><button id="refreshButton" class="icon-button" title="Muat ulang" aria-label="Muat ulang"><i class="fa-solid fa-arrows-rotate"></i></button><button id="logoutButton" class="secondary"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</button></div>
+      </header>
+      <p id="dashboardMessage" class="message" role="status"></p>
+      <div id="summaryGrid" class="summary-grid"></div>
+      <section>
+        <div class="section-head"><div><p class="eyebrow">Data pengguna</p><h2>Status absensi hari ini</h2></div><span id="userCount" class="badge"></span></div>
+        <div class="tools"><label class="search"><i class="fa-solid fa-magnifying-glass"></i><input id="searchInput" type="search" placeholder="Cari nama atau username"></label><select id="statusFilter"><option value="all">Semua status</option><option value="present">Sudah masuk</option><option value="absent">Belum masuk</option><option value="leave">Izin / sakit</option></select></div>
+        <div class="table-wrap"><table><thead><tr><th>Nama</th><th>Jabatan</th><th>Masuk</th><th>Keluar</th></tr></thead><tbody id="attendanceBody"></tbody></table><p id="emptyState" class="empty hidden">Tidak ada data yang cocok.</p></div>
+      </section>
+    </section>
+  </main>
+  <script src="assets/manage.js"></script>
+</body>
+</html>
