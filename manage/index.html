@@ -13,7 +13,14 @@
 </head>
 <body>
   <main class="shell">
-    <section id="loginView" class="panel login-panel">
+    <section id="loadingView" class="panel loading-panel">
+      <p class="eyebrow"><i class="fa-solid fa-shield-halved"></i> ERANGA Manage</p>
+      <h1>Menyiapkan dashboard.</h1>
+      <p class="lead" aria-live="polite">Memverifikasi akses admin...</p>
+      <div class="loading-indicator" aria-hidden="true"><i class="fa-solid fa-circle-notch fa-spin"></i></div>
+    </section>
+
+    <section id="loginView" class="panel login-panel hidden">
       <p class="eyebrow"><i class="fa-solid fa-chart-line"></i> ERANGA Manage</p>
       <h1>Ringkasan kehadiran.</h1>
       <p class="lead">Pantau status absensi hari ini dari satu tempat.</p>
