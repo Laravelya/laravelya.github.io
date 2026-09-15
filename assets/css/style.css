@@ -113,6 +113,7 @@ h2 { margin: 0 0 10px; color: var(--ink); font-size: clamp(26px, 4vw, 34px); let
 #dashboardSection { position: relative; text-align: center; }
 .dashboard-top-actions { position: absolute; top: 0; right: 0; display: flex; align-items: center; gap: 8px; }
 .dashboard-top-actions .manage-button, .dashboard-top-actions .logout-button { width: auto; min-height: 40px; padding: 9px 12px; margin: 0; }
+#dashboardSection .dashboard-top-actions .logout-button { margin-top: 0; }
 #dashboardSection.form-active .dashboard-top-actions { display: none; }
 #dashboardSection.form-active > h3,
 #dashboardSection.form-active > #userInfo,

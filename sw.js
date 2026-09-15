@@ -1,11 +1,11 @@
 // Kalau server bermasalah atau koneksi putus, ubah CACHE_NAME untuk memaksa service worker menghapus cache lama dan memuat ulang aset baru.
-const CACHE_NAME = "eranga-cache-deployment-20260915-v24";
+const CACHE_NAME = "eranga-cache-deployment-20260915-v26";
 
 const STATIC_ASSETS = [
   "./",
   "./index.html",
-  "./assets/css/style.css?v=20260915-p7d3f9",
-  "./assets/js/app.js?v=20260915-q2a6e8"
+  "./assets/css/style.css?v=20260915-v6r2k9",
+  "./assets/js/app.js?v=20260915-y7c3n1"
 ];
 
 self.addEventListener("install", (e) => {
@@ -41,11 +41,12 @@ self.addEventListener("fetch", (e) => {
 
   const requestUrl = new URL(e.request.url);
   if (requestUrl.origin !== self.location.origin) return;
+  const isManagePath = requestUrl.pathname === "/manage" || requestUrl.pathname.startsWith("/manage/");
 
-  const isAppShell = e.request.mode === "navigate" ||
+  const isAppShell = !isManagePath && (e.request.mode === "navigate" ||
     requestUrl.pathname.endsWith("/index.html") ||
     requestUrl.pathname.endsWith("/assets/js/app.js") ||
-    requestUrl.pathname.endsWith("/assets/css/style.css");
+    requestUrl.pathname.endsWith("/assets/css/style.css"));
 
   if (isAppShell) {
     e.respondWith(
@@ -57,7 +58,7 @@ self.addEventListener("fetch", (e) => {
           }
           return networkResponse;
         })
-        .catch(() => caches.match(e.request).then((cachedResponse) => cachedResponse || caches.match("./index.html")))
+        .catch(() => caches.match(e.request).then((cachedResponse) => cachedResponse || (isManagePath ? Response.error() : caches.match("./index.html"))))
     );
     return;
   }
@@ -82,7 +83,7 @@ self.addEventListener("fetch", (e) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(e.request, responseToCache));
           return networkResponse;
         })
-        .catch(() => e.request.mode === "navigate" ? caches.match("./index.html") : undefined);
+        .catch(() => e.request.mode === "navigate" && !isManagePath ? caches.match("./index.html") : undefined);
     })
   );
 });
