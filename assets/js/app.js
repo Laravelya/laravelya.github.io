@@ -295,7 +295,7 @@ window.addEventListener("offline", cekKoneksiInternet);
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js?v=20260915', { scope: './', updateViaCache: 'none' })
+    navigator.serviceWorker.register('sw.js?v=20260915-f1c8a2', { scope: './', updateViaCache: 'none' })
       .then(() => console.log('Service Worker Terpasang!'))
       .catch(err => console.error('SW Gagal:', err));
   });
@@ -418,6 +418,30 @@ async function logout() {
   } finally {
     hapusSesi();
     location.reload();
+  }
+}
+
+async function bukaManage() {
+  const manageButton = document.getElementById('manageButton');
+  if (!currentUserData?.sessionToken || manageButton?.disabled) return;
+
+  if (manageButton) manageButton.disabled = true;
+  try {
+    const response = await fetch(GAS_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: "buat_admin_handoff", sessionToken: currentUserData.sessionToken })
+    });
+    const result = await response.json();
+    if (result.status !== "success" || !result.handoffToken) {
+      throw new Error(result.message || "Akses Manage ditolak.");
+    }
+    window.location.href = `manage/?handoff=${encodeURIComponent(result.handoffToken)}`;
+  } catch (error) {
+    if (typeof Swal !== 'undefined') {
+      Swal.fire({ icon: 'error', title: 'Manage Tidak Dapat Dibuka', text: error.message, confirmButtonColor: '#c84545' });
+    }
+  } finally {
+    if (manageButton) manageButton.disabled = false;
   }
 }
 

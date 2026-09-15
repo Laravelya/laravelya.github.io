@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
     <script defer src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link rel="stylesheet" href="assets/css/style.css?v=20260915-e93a6d">
+    <link rel="stylesheet" href="assets/css/style.css?v=20260915-f1c8a2">
 </head>
 <body>
 
@@ -74,7 +74,7 @@
         <div id="mainButtons">
             <button class="dashboard-btn btn-green" onclick="bukaForm('Masuk')"><i class="fa-solid fa-right-to-bracket"></i> ABSEN MASUK</button>
             <button class="dashboard-btn btn-red hidden" onclick="bukaForm('Keluar')"><i class="fa-solid fa-right-from-bracket"></i> ABSEN KELUAR</button>
-            <a id="manageButton" class="dashboard-btn btn-gray manage-button hidden" href="manage/" rel="noopener"><i class="fa-solid fa-chart-line"></i> Manage</a>
+            <button id="manageButton" class="dashboard-btn btn-gray manage-button hidden" onclick="bukaManage()" type="button"><i class="fa-solid fa-chart-line"></i> Manage</button>
             <button class="dashboard-btn btn-yellow" onclick="bukaForm('Izin')"><i class="fa-solid fa-file-pen"></i> IZIN / SAKIT</button>
         </div>
 
@@ -130,6 +130,6 @@
 </div>
 
 <script defer src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
-    <script defer src="assets/js/app.js?v=20260915-d2a7f4"></script>
+    <script defer src="assets/js/app.js?v=20260915-b7e4d9"></script>
 </body>
 </html>
