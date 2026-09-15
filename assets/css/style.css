@@ -110,13 +110,15 @@ h2 { margin: 0 0 10px; color: var(--ink); font-size: clamp(26px, 4vw, 34px); let
 .btn-login:disabled, .dashboard-btn:disabled { opacity: .55; cursor: not-allowed; transform: none; }
 #loginMsg { min-height: 20px; margin: 12px 0 0; color: var(--danger); text-align: center; font-size: 13px; }
 .footer-text { margin-top: auto; padding-top: 36px; color: #8a9aa1; text-align: center; font-size: 12px; }
-#dashboardSection { text-align: center; }
+#dashboardSection { position: relative; text-align: center; }
+#dashboardSection > .logout-button { position: absolute; top: 0; right: 0; width: auto; min-height: 40px; padding: 9px 12px; margin: 0; }
 #dashboardSection.form-active > h3,
 #dashboardSection.form-active > #userInfo,
 #dashboardSection.form-active > #faceRegistrationNotice,
 #dashboardSection.form-active > #clock { display: none; }
 #dashboardSection.form-active { width: min(100%, 520px); margin: 0 auto; }
-#dashboardSection > h3 { margin: 0 0 18px; color: var(--ink) !important; font-size: clamp(22px, 4vw, 28px); letter-spacing: -.03em; line-height: 1.2; text-align: left; }
+#dashboardSection > h3 { margin: 48px 0 18px; color: var(--ink) !important; font-size: clamp(22px, 4vw, 28px); letter-spacing: -.03em; line-height: 1.2; text-align: left; }
+#dashboardSection.form-active > h3 { margin-top: 0; }
 #dashboardSection > h3::before { content: 'Kehadiran hari ini'; display: block; margin-bottom: 7px; color: var(--muted); font: 700 10px 'DM Sans', sans-serif; letter-spacing: .1em; text-transform: uppercase; }
 #displayUser { color: var(--brand); }
 .face-registration-notice { margin-bottom: 20px; padding: 18px; border: 1px solid #f0d694; border-radius: 14px; background: #fff8e6; color: #624b16; text-align: left; }
@@ -157,8 +159,6 @@ h2 { margin: 0 0 10px; color: var(--ink); font-size: clamp(26px, 4vw, 34px); let
 .btn-yellow:hover { background: #eab335; transform: translateY(-1px); }
 .btn-gray { color: var(--ink); background: #edf2f1; box-shadow: none; }
 .btn-gray:hover { background: #d6e1e4; transform: translateY(-1px); }
-#mainButtons .btn-gray { grid-column: 1 / -1; }
-.logout-button { margin-top: 8px; }
 .camera-container { position: relative; width: 100%; max-width: 520px; margin: 0 auto 14px; overflow: hidden; border: 1px solid #21343d; border-radius: 16px; background: #10232b; box-shadow: 0 16px 28px rgba(20, 42, 59, .16); }
 #video { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; transform: scaleX(-1); }
 .face-overlay { position: absolute; top: 50%; left: 50%; width: min(42%, 180px); height: min(62%, 230px); transform: translate(-50%, -50%); border: 2px dashed rgba(255, 255, 255, .82); border-radius: 50%; pointer-events: none; transition: border-color .3s ease; }

@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
     <script defer src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link rel="stylesheet" href="assets/css/style.css?v=20260918">
+    <link rel="stylesheet" href="assets/css/style.css?v=20260988">
 </head>
 <body>
 
@@ -59,6 +59,7 @@
 
     <!-- DASHBOARD -->
     <div id="dashboardSection" class="hidden">
+        <button class="dashboard-btn btn-gray logout-button" onclick="logout()"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</button>
         <h3>Halo, <span id="displayUser"></span></h3>
         <div id="userInfo" class="user-info"></div>
         <div id="faceRegistrationNotice" class="face-registration-notice hidden">
@@ -74,7 +75,6 @@
             <button class="dashboard-btn btn-green" onclick="bukaForm('Masuk')"><i class="fa-solid fa-right-to-bracket"></i> ABSEN MASUK</button>
             <button class="dashboard-btn btn-red hidden" onclick="bukaForm('Keluar')"><i class="fa-solid fa-right-from-bracket"></i> ABSEN KELUAR</button>
             <button class="dashboard-btn btn-yellow" onclick="bukaForm('Izin')"><i class="fa-solid fa-file-pen"></i> IZIN / SAKIT</button>
-            <button class="dashboard-btn btn-gray logout-button" onclick="logout()"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</button>
         </div>
 
         <!-- FORM ABSEN KAMERA (LIVENESS) -->
