@@ -112,6 +112,8 @@ h2 { margin: 0 0 10px; color: var(--ink); font-size: clamp(26px, 4vw, 34px); let
 .footer-text { margin-top: auto; padding-top: 36px; color: #8a9aa1; text-align: center; font-size: 12px; }
 #dashboardSection { position: relative; text-align: center; }
 #dashboardSection > .logout-button { position: absolute; top: 0; right: 0; width: auto; min-height: 40px; padding: 9px 12px; margin: 0; }
+#mainButtons .manage-button { grid-column: 1 / -1; width: 100%; min-height: 46px; margin: 0; text-decoration: none; }
+#dashboardSection.form-active .manage-button { display: none; }
 #dashboardSection.form-active > .logout-button { display: none; }
 #dashboardSection.form-active > h3,
 #dashboardSection.form-active > #userInfo,

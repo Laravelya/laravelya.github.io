@@ -495,6 +495,8 @@ function showDashboard(nama) {
   document.getElementById('loginSection').classList.add('hidden');
   document.getElementById('dashboardSection').classList.remove('hidden');
   document.getElementById('displayUser').innerText = nama;
+  const manageButton = document.getElementById('manageButton');
+  if (manageButton) manageButton.classList.toggle('hidden', currentUserData?.isAdmin !== true);
 
   const now = new Date();
   const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
