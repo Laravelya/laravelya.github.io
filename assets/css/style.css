@@ -111,10 +111,9 @@ h2 { margin: 0 0 10px; color: var(--ink); font-size: clamp(26px, 4vw, 34px); let
 #loginMsg { min-height: 20px; margin: 12px 0 0; color: var(--danger); text-align: center; font-size: 13px; }
 .footer-text { margin-top: auto; padding-top: 36px; color: #8a9aa1; text-align: center; font-size: 12px; }
 #dashboardSection { position: relative; text-align: center; }
-#dashboardSection > .manage-button { position: absolute; top: 0; right: 82px; width: auto; min-height: 40px; padding: 9px 12px; margin: 0; }
-#dashboardSection > .logout-button { position: absolute; top: 0; right: 0; width: auto; min-height: 40px; padding: 9px 12px; margin: 0; }
-#dashboardSection.form-active .manage-button { display: none; }
-#dashboardSection.form-active > .logout-button { display: none; }
+.dashboard-top-actions { position: absolute; top: 0; right: 0; display: flex; align-items: center; gap: 8px; }
+.dashboard-top-actions .manage-button, .dashboard-top-actions .logout-button { width: auto; min-height: 40px; padding: 9px 12px; margin: 0; }
+#dashboardSection.form-active .dashboard-top-actions { display: none; }
 #dashboardSection.form-active > h3,
 #dashboardSection.form-active > #userInfo,
 #dashboardSection.form-active > #faceRegistrationNotice,

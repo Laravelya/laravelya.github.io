@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
     <script defer src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link rel="stylesheet" href="assets/css/style.css?v=20260915-g6d2a1">
+    <link rel="stylesheet" href="assets/css/style.css?v=20260915-p7d3f9">
 </head>
 <body>
 
@@ -59,8 +59,10 @@
 
     <!-- DASHBOARD -->
     <div id="dashboardSection" class="hidden">
-        <button id="manageButton" class="dashboard-btn btn-gray manage-button hidden" onclick="bukaManage()" type="button"><i class="fa-solid fa-chart-line"></i> Manage</button>
-        <button class="dashboard-btn btn-gray logout-button" onclick="logout()"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</button>
+        <div class="dashboard-top-actions">
+            <button id="manageButton" class="dashboard-btn btn-gray manage-button hidden" onclick="bukaManage()" type="button"><i class="fa-solid fa-chart-line"></i> Manage</button>
+            <button class="dashboard-btn btn-gray logout-button" onclick="logout()"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</button>
+        </div>
         <h3>Halo, <span id="displayUser"></span></h3>
         <div id="userInfo" class="user-info"></div>
         <div id="faceRegistrationNotice" class="face-registration-notice hidden">
@@ -130,6 +132,6 @@
 </div>
 
 <script defer src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
-    <script defer src="assets/js/app.js?v=20260915-h8f4c3"></script>
+    <script defer src="assets/js/app.js?v=20260915-q2a6e8"></script>
 </body>
 </html>
